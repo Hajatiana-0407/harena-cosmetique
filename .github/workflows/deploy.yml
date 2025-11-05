@@ -14,14 +14,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Creation de .env
       - name: Create .env file from secrets
-        run:
+        run: |
           cd Server
           cat > .env << 'EOF'
           APP_ENV=prod
           DATABASE_URL=${{ secrets.DATABASE_URL }}
-          EO
+          EOF
 
       # 2️⃣ Installer les dépendances backend (Symfony)
       - name: Install backend dependencies (Composer + npm)
