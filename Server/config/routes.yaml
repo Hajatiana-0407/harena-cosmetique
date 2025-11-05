@@ -1,0 +1,32 @@
+# Redirection de la route racine vers login
+root:
+    path: /
+    controller: Symfony\Bundle\FrameworkBundle\Controller\RedirectController
+    defaults:
+        route: 'app_login'
+        permanent: false
+
+# Routes pour les contrôleurs API (préfixe /api)
+api_controllers:
+    resource:
+        path: ../src/Controller/Api/
+        namespace: App\Controller\Api
+    type: attribute
+    prefix: /api
+
+# Routes pour les contrôleurs Admin (sans préfixe)
+admin_controllers:
+    resource:
+        path: ../src/Controller/Admin/
+        namespace: App\Controller\Admin
+    type: attribute
+
+# Routes pour les autres contrôleurs (sans préfixe)
+other_controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+    exclude: 
+        - ../src/Controller/Admin/
+        - ../src/Controller/Api/

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin - Harena Cosmetic{% endblock %}</title>
+    
+    {# Google Fonts #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    {# Font Awesome #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #5C4033;
+            --primary-light: #8B6B4A;
+            --secondary: #A67B5B;
+            --beige-light: #F5F5DC;
+            --beige: #EDE0D4;
+            --text-dark: #2C1810;
+            --gray-light: #F8F9FA;
+            --white: #FFFFFF;
+            --sidebar-width: 250px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--gray-light);
+            color: var(--text-dark);
+        }
+
+        /* Sidebar */
+        .admin-sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--primary);
+            color: var(--white);
+            padding: 1rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar-logo {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-logo img {
+            max-height: 40px;
+        }
+
+        .nav-item {
+            margin: 0.5rem 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--beige);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: var(--primary-light);
+            color: var(--white);
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-link.active {
+            background: var(--secondary);
+            color: var(--white);
+        }
+
+        /* Main Content */
+        .admin-main {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            background: var(--beige-light);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 1rem 1.5rem;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: var(--white);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            opacity: 0.2;
+        }
+
+        /* Tables */
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table th {
+            background: var(--beige-light);
+            color: var(--primary);
+            font-weight: 500;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--beige);
+        }
+
+        .table tr:hover td {
+            background: var(--beige-light);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .admin-main {
+                margin-left: 0;
+            }
+        }
+    </style>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+    {# Sidebar #}
+    <nav class="admin-sidebar">
+        <div class="sidebar-logo text-center">
+            <img src="{{ asset('image/MonLogo.png') }}" alt="Logo" class="img-fluid">
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="{{ path('admin') }}" class="nav-link {% if app.request.get('_route') == 'admin' %}active{% endif %}">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ path('admin_produit_index') }}" class="nav-link">
+                    <i class="fas fa-box"></i> Produits
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ path('admin_categorie_index') }}" class="nav-link">
+                    <i class="fas fa-tags"></i> Catégories
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ path('admin_commande_index') }}" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i> Commandes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ path('admin_client_index') }}" class="nav-link">
+                    <i class="fas fa-users"></i> Clients
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ path('admin_temoignage_index') }}" class="nav-link">
+                    <i class="fas fa-comment"></i> Témoignages
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    {# Main Content #}
+    <main class="admin-main">
+        {% block body %}{% endblock %}
+    </main>
+
+    {% block javascripts %}
+    <script>
+        // Toggle mobile sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.classList.add('btn', 'btn-primary', 'd-md-none');
+            toggleBtn.style.position = 'fixed';
+            toggleBtn.style.top = '1rem';
+            toggleBtn.style.left = '1rem';
+            toggleBtn.style.zIndex = '1001';
+            toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            
+            document.body.appendChild(toggleBtn);
+            
+            toggleBtn.addEventListener('click', function() {
+                document.querySelector('.admin-sidebar').classList.toggle('show');
+            });
+        });
+    </script>
+    {% endblock %}
+</body>
+</html>

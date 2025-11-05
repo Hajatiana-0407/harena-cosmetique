@@ -1,0 +1,205 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block head_stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/admin-theme.css') }}">
+{% endblock %}
+
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block main %}
+<div class="dashboard">
+    {# Stats Overview #}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow welcome-card">
+                <div class="card-body text-center">
+                    <div class="welcome-icon mb-3">
+                        <img src="{{ asset('image/MonLogo.png') }}" alt="Logo" class="img-fluid" style="max-height: 80px;">
+                    </div>
+                    <p class="card-text lead text-muted">Gérez votre boutique et suivez vos performances en temps réel</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Quick Stats #}
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card shadow stat-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title font-weight-bold">Total Commandes</h5>
+                            <p class="card-text display-4 mb-0">
+                                {# TODO: Add dynamic stats #}
+                                0
+                            </p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow stat-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title font-weight-bold">Ventes du mois</h5>
+                            <p class="card-text display-4 mb-0">
+                                0 Ar
+                            </p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow stat-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title font-weight-bold">Total Clients</h5>
+                            <p class="card-text display-4 mb-0">
+                                0
+                            </p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow stat-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title font-weight-bold">Total Produits</h5>
+                            <p class="card-text display-4 mb-0">
+                                0
+                            </p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-box fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Recent Activity #}
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Dernières Commandes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Client</th>
+                                    <th>Total</th>
+                                    <th>État</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4" class="text-center">Aucune commande récente</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Derniers Avis Clients</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Produit</th>
+                                    <th>Note</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4" class="text-center">Aucun avis récent</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard .card {
+        transition: all 0.3s ease;
+        border-radius: 15px;
+    }
+    .dashboard .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(92, 64, 51, 0.1) !important;
+    }
+    .dashboard .display-4 {
+        font-size: 2.5rem;
+        font-weight: 600;
+    }
+    .text-brown {
+        color: #5C4033;
+    }
+    .welcome-card {
+        background: linear-gradient(135deg, #F5F5DC, #EDE0D4) !important;
+        border: none !important;
+        padding: 2rem;
+    }
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-icon {
+        opacity: 0.2;
+        position: absolute;
+        right: 10px;
+        top: 10px;
+    }
+    .stat-card:hover .stat-icon {
+        opacity: 0.4;
+        transform: scale(1.1);
+        transition: all 0.3s ease;
+    }
+    .table thead th {
+        background-color: #F5F5DC;
+        color: #5C4033;
+        font-weight: 600;
+    }
+    .table tbody tr:hover {
+        background-color: #EDE0D4;
+    }
+    .card-header {
+        background-color: #F5F5DC;
+        border-bottom: 2px solid #5C4033;
+    }
+</style>
+{% endblock %}

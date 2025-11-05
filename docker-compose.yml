@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:16-alpine
+    container_name: cosmetic_harena_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    ports:
+      - "5432:5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - harena_network
+
+  # Mailpit for Email Testing
+  mailer:
+    image: axllent/mailpit
+    container_name: cosmetic_harena_mailer
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - harena_network
+
+  # Symfony Backend (Optional - for full containerization)
+  # Uncomment and configure if you want to run Symfony in Docker
+  # backend:
+  #   build:
+  #     context: ./server
+  #     dockerfile: Dockerfile
+  #   container_name: cosmetic_harena_backend
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./server:/var/www/html
+  #   depends_on:
+  #     database:
+  #       condition: service_healthy
+  #   environment:
+  #     DATABASE_URL: postgresql://app:!ChangeMe!@database:5432/app?serverVersion=16&charset=utf8
+  #   networks:
+  #     - harena_network
+
+  # React Frontend (Optional - for full containerization)
+  # Uncomment and configure if you want to run React in Docker
+  # frontend:
+  #   build:
+  #     context: ./client
+  #     dockerfile: Dockerfile
+  #   container_name: cosmetic_harena_frontend
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./client:/app
+  #   networks:
+  #     - harena_network
+
+volumes:
+  database_data:
+
+networks:
+  harena_network:
+    driver: bridge

@@ -1,0 +1,129 @@
+/* Couleurs personnalisées */
+:root {
+    --primary-color: #5C4033;
+    --primary-hover: #7B4B3A;
+    --secondary-color: #A67B5B;
+    --accent-color: #8B4513;
+    --light-beige: #F5F5DC;
+    --cream: #EDE0D4;
+    --text-dark: #2C1810;
+}
+
+/* Style global */
+.ea-dark-scheme, .ea-light-scheme {
+    --ea-primary-color: var(--primary-color) !important;
+    --ea-sidebar-width: 260px !important;
+}
+
+/* Sidebar */
+.ea-sidebar {
+    background: var(--primary-color) !important;
+}
+
+.ea-sidebar-logo {
+    background: var(--accent-color) !important;
+}
+
+.ea-sidebar-menu-item a {
+    color: var(--light-beige) !important;
+}
+
+.ea-sidebar-menu-item a:hover {
+    background: var(--primary-hover) !important;
+}
+
+.ea-sidebar-menu-item.active a {
+    background: var(--secondary-color) !important;
+    border-left: 4px solid var(--light-beige) !important;
+}
+
+/* Dashboard cards */
+.dashboard .card {
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    background: white !important;
+}
+
+.dashboard .card-header {
+    background: var(--cream) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.dashboard .card-title {
+    color: var(--text-dark) !important;
+}
+
+/* Stats cards */
+.dashboard .bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;
+}
+
+.dashboard .bg-success {
+    background: linear-gradient(135deg, #5C8033, #4B7B3A) !important;
+}
+
+.dashboard .bg-info {
+    background: linear-gradient(135deg, var(--secondary-color), #C89B7B) !important;
+}
+
+.dashboard .bg-warning {
+    background: linear-gradient(135deg, #8B6513, #A67B33) !important;
+}
+
+/* Tables */
+.table thead th {
+    background: var(--cream) !important;
+    color: var(--text-dark) !important;
+    border-bottom: 2px solid var(--secondary-color) !important;
+}
+
+.table tbody tr:hover {
+    background: var(--light-beige) !important;
+}
+
+/* Boutons */
+.btn-primary {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+}
+
+/* Animations */
+.dashboard .card {
+    transition: all 0.3s ease !important;
+}
+
+.dashboard .card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Personnalisation supplémentaire */
+.content-header {
+    background: var(--cream) !important;
+    padding: 20px 30px !important;
+    border-radius: 12px !important;
+    margin-bottom: 20px !important;
+}
+
+.content-header h1 {
+    color: var(--primary-color) !important;
+    font-weight: 600 !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .dashboard .card {
+        margin-bottom: 20px !important;
+    }
+    
+    .ea-sidebar {
+        width: 100% !important;
+    }
+}
