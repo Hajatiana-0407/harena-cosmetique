@@ -1,0 +1,67 @@
+name: Deploy NaturalMG
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Récupérer le code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Installer les dépendances backend (Symfony)
+      - name: Install backend dependencies (Composer + npm)
+        run: |
+          cd Server
+          composer install --no-dev --optimize-autoloader
+          npm ci
+          npm run build
+          php bin/console cache:clear --env=prod
+          php bin/console cache:warmup --env=prod
+
+      # 3️⃣ Build du frontend (React)
+      - name: Build frontend (React)
+        run: |
+          cd Client
+          npm ci
+          npm run build
+
+      # 4️⃣ Déploiement du backend (Symfony)
+      - name: Deploy backend (Symfony)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ftp.divas-consulting.com
+          username: 266949882gbC9
+          password: harena-FTP-25
+          protocol: ftp
+          local-dir: ./Server/
+          server-dir: /naturalmg.com/Server/
+          exclude: |
+            **/node_modules/**
+            **/var/**
+            **/.git**
+            **/.github/**
+            **/.env.local**
+            **/.env.dev**
+            **/.env.development**
+
+      # 5️⃣ Déploiement du frontend buildé (React)
+      - name: Deploy frontend build (React)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ftp.divas-consulting.com
+          username: 266949882gbC9
+          password: harena-FTP-25
+          protocol: ftp
+          local-dir: ./Client/build/
+          server-dir: /naturalmg.com/
+          exclude: |
+            **/Server/**
+            **/node_modules/**
+            **/.git**
+            **/.github/**
