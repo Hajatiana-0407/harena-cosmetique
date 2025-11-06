@@ -2,6 +2,7 @@
 
 // import { Dialog, DialogPanel } from '@headlessui/react'
 // import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import heroImage from '../assets/image/heros.jpg'
 
 export default function Heros() {
   return (
@@ -9,7 +10,7 @@ export default function Heros() {
   className="hero h-screen"
   style={{
     backgroundImage:
-      "url(public/image/heros.jpg)",
+      `url(${heroImage})`,
   }}
 >
   <div className="hero-overlay"></div>
