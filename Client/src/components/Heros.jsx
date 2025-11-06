@@ -2,13 +2,14 @@
 
 // import { Dialog, DialogPanel } from '@headlessui/react'
 // import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import hero_image from '../../public/image/heros.jpg'
 export default function Heros() {
   return (
 <div
   className="hero h-screen"
   style={{
     backgroundImage:
-      "url(public/image/heros.jpg)",
+      `url(${hero_image})`,
   }}
 >
   <div className="hero-overlay"></div>
