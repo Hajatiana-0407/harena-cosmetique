@@ -20,6 +20,7 @@ jobs:
           cat > .env << 'EOF'
           APP_ENV=prod
           DATABASE_URL=${{ secrets.DATABASE_URL }}
+          MESSENGER_TRANSPORT_DSN=doctrine://default?auto_setup=0
           EOF
 
       # 2️⃣ Installer les dépendances backend (Symfony)
