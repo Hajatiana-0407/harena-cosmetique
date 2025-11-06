@@ -48,7 +48,7 @@ jobs:
           password: harena-FTP-25
           protocol: ftp
           local-dir: ./Server/
-          server-dir: /naturalmg.com/Server/
+          server-dir: /Server/
           exclude: |
             **/node_modules/**
             **/var/**
@@ -67,7 +67,7 @@ jobs:
           password: harena-FTP-25
           protocol: ftp
           local-dir: ./Client/dist/
-          server-dir: /naturalmg.com/
+          server-dir: /
           exclude: |
             **/Server/**
             **/node_modules/**
