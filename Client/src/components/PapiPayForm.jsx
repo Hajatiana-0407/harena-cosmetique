@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function PapiPayForm({ endpoint = "http://127.0.0.1:8000/api/papi/create-payment" }) {
+export default function PapiPayForm({ endpoint = "/api/papi/create-payment" }) {
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState(5000);
   const [loading, setLoading] = useState(false);
