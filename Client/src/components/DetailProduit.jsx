@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../API/url';
 
 // --- Données Statiques du Produit (fallback) ---
@@ -386,7 +386,26 @@ const DetailProduit = ({ id }) => {
                     aria-label="Ajouter au panier"
                 >
                     <span className="text-xl">+</span> <span className="ml-2 uppercase tracking-wide">Ajouter au panier</span>
+
                 </button>
+                <Link
+                  to="/payer"
+                  className="
+                    inline-block
+                    px-6 py-3
+                    bg-[#8b5e3c]
+                    text-white
+                    font-semibold
+                    rounded-lg
+                    shadow-md
+                    hover:bg-[#a3734f]
+                    transition-colors
+                    duration-300
+                    text-center
+                  "
+                >
+                  💳 Payer avec PAPI
+                </Link>
               </div>
               <p className="text-sm text-gray-500 pt-2">Livraison offerte dès 20.000 Ar d'achat.</p>
           </div>

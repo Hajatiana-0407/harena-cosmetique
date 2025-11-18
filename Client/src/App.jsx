@@ -42,6 +42,9 @@ import PaiementList from './components/test';
 import ComptePage from './pages/compte';
 import MessengerInterface from './components/Messenger';
 import DetailBlog from './components/DetailBlogs';
+import PapiPayForm from './components/PapiPayForm';
+import Success from './pages/Success';
+import Failure from './pages/Failure';
 
 // Loading component
 const LoadingFallback = () => (
@@ -150,6 +153,26 @@ function AppContent() {
             <Layout>
               <Produit />
             </Layout>
+          }
+        />
+        <Route
+          path="/payer"
+          element={
+            <Layout>
+              <PapiPayForm />
+            </Layout>
+          }
+        />
+        <Route
+          path="/success"
+          element={
+            <Success />
+          }
+        />
+        <Route
+          path="/failure"
+          element={
+            <Failure />
           }
         />
         <Route
