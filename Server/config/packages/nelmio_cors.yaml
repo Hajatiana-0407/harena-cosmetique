@@ -22,3 +22,8 @@ nelmio_cors:
             allow_methods: ['GET', 'POST', 'OPTIONS']
             allow_headers: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
             max_age: 3600
+        '^/payer':
+            allow_origin: ['http://localhost:5173']
+            allow_methods: ['POST', 'OPTIONS']
+            allow_headers: ['Content-Type', 'Authorization']
+            max_age: 3600
