@@ -15,16 +15,16 @@ class Panier
     #[Groups(['panier:read'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'paniers')]
+    #[ORM\OneToOne(inversedBy: 'panier', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['panier:read'])]
     private ?Client $idclient = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'json')]
     #[Groups(['panier:read'])]
     private array $items = [];
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     #[Groups(['panier:read'])]
     private ?\DateTimeImmutable $updated_at = null;
 

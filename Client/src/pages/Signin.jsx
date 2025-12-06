@@ -28,6 +28,7 @@ const SignUpPage = () => {
         email: '',
         password: '',
         confirmPassword: '',
+        telephone: '',
     });
 
     // État pour gérer les messages d'erreur de validation
@@ -44,6 +45,10 @@ const SignUpPage = () => {
         
         if (!formData.email || !emailRegex.test(formData.email)) {
             newErrors.email = 'Veuillez entrer une adresse e-mail valide.';
+        }
+
+        if (!formData.telephone) {
+            newErrors.telephone = 'Le numéro de téléphone est requis.';
         }
 
         if (!formData.password || !passwordRegex.test(formData.password)) {
@@ -78,9 +83,10 @@ const SignUpPage = () => {
                     const sanitizedName = formData.name.trim();
                     const sanitizedEmail = formData.email.trim().toLowerCase();
                     const sanitizedPassword = formData.password;
+                    const sanitizedTelephone = formData.telephone.trim();
 
                     // Additional security check
-                    if (!sanitizedName || !sanitizedEmail || !sanitizedPassword) {
+                    if (!sanitizedName || !sanitizedEmail || !sanitizedPassword || !sanitizedTelephone) {
                         setErrors({ form: 'Tous les champs sont requis' });
                         return;
                     }
@@ -91,7 +97,7 @@ const SignUpPage = () => {
                         email: sanitizedEmail,
                         password: sanitizedPassword,
                         adresse: '', // Add address field if needed
-                        telephone: '' // Add phone field if needed
+                        telephone: sanitizedTelephone
                     });
                     
                     if (data?.success) {

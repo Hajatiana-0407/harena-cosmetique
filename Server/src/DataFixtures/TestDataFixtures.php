@@ -100,7 +100,7 @@ class TestDataFixtures extends Fixture
             $client->setPrenom($prenom);
             $client->setEmail($email);
             $client->setAdresse($adresse);
-            $client->setTelephone($telephone);
+            $client->setTelephone((string)$telephone);
             $client->setPassword('test_password');
             $client->setCreatedAt(new \DateTimeImmutable());
             $manager->persist($client);
@@ -119,7 +119,8 @@ class TestDataFixtures extends Fixture
             $temoignage->setContenu($contenu);
             $temoignage->setImage('/image/beauty.jpg');
             $temoignage->setCreatedAt(new \DateTimeImmutable());
-            $temoignage->addIdClient($clients[$index % count($clients)]);
+            $temoignage->setTitre('Témoignage ' . ($index + 1));
+            $temoignage->setIdClient($clients[$index % count($clients)]);
             $manager->persist($temoignage);
         }
 

@@ -14,6 +14,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use Doctrine\ORM\EntityManagerInterface;
 
+use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
+
 class ProduitCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
@@ -28,13 +30,15 @@ class ProduitCrudController extends AbstractCrudController
             TextField::new('nom', 'Nom du produit'),
             TextEditorField::new('definition', 'Description'),
             TextEditorField::new('utilisation', 'Mode d\'utilisation'),
-            TextField::new('compositions', 'Compositions'),
-            TextField::new('presentation', 'Présentation'),
+            ArrayField::new('compositions', 'Compositions'),
+            TextEditorField::new('presentation', 'Présentation'),
             MoneyField::new('prix', 'Prix')
                 ->setCurrency('MGA')
                 ->setStoredAsCents(false),
-            TextField::new('stock', 'Stock'),
+            IntegerField::new('stock', 'Stock'),
             AssociationField::new('id_categorie', 'Catégorie'),
+            AssociationField::new('avis', 'Avis')
+                ->hideOnForm(),
             ImageField::new('image', 'Image principale')
                 ->setBasePath('/image')
                 ->setUploadDir('public/image')

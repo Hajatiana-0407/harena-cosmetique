@@ -176,12 +176,12 @@ final class ClientController extends AbstractController
             }
     
             // Sanitize and validate inputs
-            $nom = isset($data['nom_client']) ? trim(strip_tags($data['nom_client'])) : '';
-            $prenom = isset($data['prenom_client']) ? trim(strip_tags($data['prenom_client'])) : '';
-            $email = isset($data['email_client']) ? trim(strip_tags($data['email_client'])) : '';
-            $phone = isset($data['phone_client']) ? preg_replace('/[^0-9]/', '', $data['phone_client']) : '';
-            $password = isset($data['password_client']) ? $data['password_client'] : '';
-            $adresse = isset($data['adresse_client']) ? trim(strip_tags($data['adresse_client'])) : '';
+            $nom = isset($data['nom']) ? trim(strip_tags($data['nom'])) : '';
+            $prenom = isset($data['prenom']) ? trim(strip_tags($data['prenom'])) : '';
+            $email = isset($data['email']) ? trim(strip_tags($data['email'])) : '';
+            $phone = isset($data['telephone']) ? preg_replace('/[^0-9]/', '', $data['telephone']) : '';
+            $password = isset($data['password']) ? $data['password'] : '';
+            $adresse = isset($data['adresse']) ? trim(strip_tags($data['adresse'])) : '';
 
             // Validation des champs requis
             if (!$nom || !$prenom || !$email || !$phone || !$password) {
@@ -237,7 +237,7 @@ final class ClientController extends AbstractController
                 $client->setNom($nom);
                 $client->setPrenom($prenom);
                 $client->setEmail($email);
-                $client->setTelephone((int)$phone);
+                $client->setTelephone($phone);
                 $client->setAdresse($adresse);
                 $client->setCreatedAt(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s')));
 

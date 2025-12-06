@@ -100,6 +100,26 @@ class Client implements PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Contact::class, mappedBy: 'id_client')]
     private Collection $contacts;
 
+    #[ORM\OneToOne(mappedBy: 'idclient', cascade: ['persist', 'remove'])]
+    private ?Panier $panier = null;
+
+    public function getPanier(): ?Panier
+    {
+        return $this->panier;
+    }
+
+    public function setPanier(Panier $panier): static
+    {
+        // set the owning side of the relation if necessary
+        if ($panier->getIdclient() !== $this) {
+            $panier->setIdclient($this);
+        }
+
+        $this->panier = $panier;
+
+        return $this;
+    }
+
     public function __construct()
     {
         $this->commandes = new ArrayCollection();

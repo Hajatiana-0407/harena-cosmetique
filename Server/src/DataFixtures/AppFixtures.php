@@ -160,6 +160,7 @@ class AppFixtures extends Fixture
         for ($i = 0; $i < 12; $i++) {
             $t = new Temoignage();
             $t->setIdClient($faker->randomElement($clients));
+            $t->setTitre($faker->sentence(3)); // Added missing title
             $t->setContenu($faker->realText(80));
             $t->setImage("temoignage_$i.jpg");
             $t->setCreatedAt(DateTimeImmutable::createFromMutable(

@@ -67,12 +67,15 @@ const BlogPage = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     let isMounted = true;
-    (async () => {
+    const fetchArticles = async () => {
       try {
-        const { data } = await api.get('/articles');
+        setLoading(true);
+        const endpoint = searchTerm ? `/articles?q=${encodeURIComponent(searchTerm)}` : '/articles';
+        const { data } = await api.get(endpoint);
         if (!isMounted) return;
         const list = Array.isArray(data) ? data : [];
         // Normaliser les champs attendus par la carte
@@ -91,9 +94,17 @@ const BlogPage = () => {
       } finally {
         if (isMounted) setLoading(false);
       }
-    })();
-    return () => { isMounted = false; };
-  }, []);
+    };
+
+    const timeoutId = setTimeout(() => {
+        fetchArticles();
+    }, 500);
+
+    return () => { 
+        isMounted = false; 
+        clearTimeout(timeoutId);
+    };
+  }, [searchTerm]);
 
 
   
@@ -111,7 +122,11 @@ const BlogPage = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             <span className={`font-bold text-lg ${primaryColor}`}>BLOG</span>
-            <button className={`p-2 border-2 cursor-pointer border-[#8b5e3c] hover:bg-[#8b5e3c]/10 rounded-full`}> 
+            <button 
+                onClick={() => { setSearchTerm(''); }}
+                className={`p-2 border-2 cursor-pointer border-[#8b5e3c] hover:bg-[#8b5e3c]/10 rounded-full`}
+                title="Réinitialiser la recherche"
+            > 
                 <svg
                     className="w-5 h-5 text-[#8b5e3c]"
                     viewBox="0 0 24 24"
@@ -128,6 +143,8 @@ const BlogPage = () => {
               type="text"
               placeholder="RECHERCHER UN ARTICLE"
               className={`flex-grow outline-none text-sm bg-transparent ${primaryColor} placeholder:text-stone-400`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button className="btn btn-ghost btn-circle">
               <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${lightAccent}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /> </svg>

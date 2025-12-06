@@ -11,6 +11,8 @@ use App\Entity\Paiement;
 use App\Entity\Produit;
 use App\Entity\Temoignage;
 use App\Entity\User;
+use App\Entity\Message;
+use App\Entity\Panier;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -63,6 +65,7 @@ class AdminController extends AbstractDashboardController
             yield MenuItem::section('Ventes');
             yield MenuItem::subMenu('Commandes', 'fas fa-shopping-cart')->setSubItems([
                 MenuItem::linkToCrud('Toutes les commandes', 'fas fa-list', Commande::class),
+                MenuItem::linkToCrud('Paniers', 'fas fa-shopping-basket', Panier::class),
                 MenuItem::linkToCrud('Paiements', 'fas fa-money-bill', Paiement::class),
             ]);
 
@@ -70,6 +73,7 @@ class AdminController extends AbstractDashboardController
             yield MenuItem::section('Relations clients');
             yield MenuItem::subMenu('Clients', 'fas fa-users')->setSubItems([
                 MenuItem::linkToCrud('Liste des clients', 'fas fa-list', Client::class),
+                MenuItem::linkToCrud('Messages', 'fas fa-envelope', Message::class),
                 MenuItem::linkToCrud('Avis clients', 'fas fa-star', Avis::class),
                 MenuItem::linkToCrud('Témoignages', 'fas fa-comment', Temoignage::class),
             ]);

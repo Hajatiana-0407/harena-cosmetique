@@ -28,11 +28,12 @@ class TemoignageCrudController extends AbstractCrudController
     {
         return [
             IdField::new('id')->hideOnForm(),
+            TextField::new('titre', 'Titre'),
+            TextField::new('auteur', 'Auteur'),
             TextEditorField::new('contenu', 'Contenu du témoignage'),
-            AssociationField::new('id_client', 'Clients')
-                ->setFormTypeOption('multiple', true)
+            AssociationField::new('id_client', 'Client')
                 ->setRequired(false)
-                ->setHelp('Sélectionnez un ou plusieurs clients pour ce témoignage'),
+                ->setHelp('Sélectionnez un client pour ce témoignage'),
             ImageField::new('image', 'Image')
                 ->setBasePath('/image')
                 ->setUploadDir('public/image')

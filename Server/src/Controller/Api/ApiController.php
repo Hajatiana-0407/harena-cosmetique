@@ -17,15 +17,29 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Produit;
 use App\Entity\Client;
+use App\Entity\Panier;
+use App\Repository\PanierRepository;
 
 #[Route('/api', name: 'api')]
 final class ApiController extends AbstractController
 {
     private const DEFAULT_IMAGE = '/image/beauty.jpg';
     #[Route('/articles', name: 'articles', methods: ['GET'])]
-    public function getArticles(ArticleRepository $articleRepository): Response
+    public function getArticles(Request $request, ArticleRepository $articleRepository): Response
     {
-        $articles = $articleRepository->findAll();
+        $query = $request->query->get('q');
+        
+        if ($query) {
+            $articles = $articleRepository->createQueryBuilder('a')
+                ->where('a.titre LIKE :query')
+                ->orWhere('a.contenu LIKE :query')
+                ->setParameter('query', '%' . $query . '%')
+                ->getQuery()
+                ->getResult();
+        } else {
+            $articles = $articleRepository->findAll();
+        }
+
         return $this->json($articles, 200, [], ['groups' => 'article:read']);
     }
 
@@ -272,7 +286,7 @@ final class ApiController extends AbstractController
         $client->setNom($nom);
         $client->setPrenom($prenom);
         if ($adresse) { $client->setAdresse($adresse); }
-        if ($telephone) { $client->setTelephone((int)$telephone); }
+        if ($telephone) { $client->setTelephone($telephone); }
         $client->setCreatedAt(new \DateTimeImmutable());
 
         // Hash password
@@ -389,7 +403,7 @@ final class ApiController extends AbstractController
         $client->setPrenom($prenom);
         $client->setEmail($email);
         if ($adresse) { $client->setAdresse($adresse); }
-        if ($telephone !== null && $telephone !== '') { $client->setTelephone((int)$telephone); }
+        if ($telephone !== null && $telephone !== '') { $client->setTelephone($telephone); }
         if ($password) {
             $hashed = $passwordHasher->hashPassword($client, $password);
             $client->setPassword($hashed);
@@ -463,5 +477,156 @@ final class ApiController extends AbstractController
         $mailer->send($emailMessage);
 
         return $this->json(['success' => true, 'message' => 'Message envoyé avec succès']);
+    }
+
+    #[Route('/panier', name: 'get_panier', methods: ['GET'])]
+    public function getPanier(Request $request, ClientRepository $clientRepository, PanierRepository $panierRepository, EntityManagerInterface $em): Response
+    {
+        // Retrieve client from session (simulated for now as session might not be persistent in this context without proper config)
+        // In a real API, use JWT or Session cookie. Here we check if 'client' is in session or passed as query param for testing.
+        $clientId = $request->query->get('clientId');
+        
+        if (!$clientId) {
+             // Try to get from session if available
+             $sessionClient = $request->getSession()->get('client');
+             if ($sessionClient) {
+                 $clientId = $sessionClient['id'];
+             }
+        }
+
+        if (!$clientId) {
+            return $this->json(['success' => false, 'message' => 'Client non identifié'], 401);
+        }
+
+        $client = $clientRepository->find($clientId);
+        if (!$client) {
+            return $this->json(['success' => false, 'message' => 'Client non trouvé'], 404);
+        }
+
+        $panier = $panierRepository->findOneBy(['idclient' => $client]);
+
+        if (!$panier) {
+            $panier = new Panier();
+            $panier->setIdclient($client);
+            $panier->setItems([]);
+            $panier->setUpdatedAt(new \DateTimeImmutable());
+            $em->persist($panier);
+            $em->flush();
+        }
+
+        return $this->json($panier, 200, [], ['groups' => 'panier:read']);
+    }
+
+    #[Route('/panier/add', name: 'add_to_panier', methods: ['POST'])]
+    public function addToPanier(Request $request, ClientRepository $clientRepository, PanierRepository $panierRepository, ProduitRepository $produitRepository, EntityManagerInterface $em): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $clientId = $data['clientId'] ?? null;
+        $productId = $data['productId'] ?? null;
+        $quantity = $data['quantity'] ?? 1;
+
+        if (!$clientId || !$productId) {
+            return $this->json(['success' => false, 'message' => 'Client ID et Product ID requis'], 400);
+        }
+
+        $client = $clientRepository->find($clientId);
+        $produit = $produitRepository->find($productId);
+
+        if (!$client || !$produit) {
+            return $this->json(['success' => false, 'message' => 'Client ou Produit non trouvé'], 404);
+        }
+
+        $panier = $panierRepository->findOneBy(['idclient' => $client]);
+        if (!$panier) {
+            $panier = new Panier();
+            $panier->setIdclient($client);
+            $panier->setItems([]);
+            $panier->setUpdatedAt(new \DateTimeImmutable());
+            $em->persist($panier);
+        }
+
+        $items = $panier->getItems();
+        $found = false;
+        foreach ($items as &$item) {
+            if ($item['id'] === $productId) {
+                $item['quantity'] += $quantity;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $items[] = [
+                'id' => $produit->getId(),
+                'name' => $produit->getNom(),
+                'price' => $produit->getPrix(),
+                'image' => $produit->getImage() ?? '/image/beauty.jpg',
+                'quantity' => $quantity
+            ];
+        }
+
+        $panier->setItems($items);
+        $panier->setUpdatedAt(new \DateTimeImmutable());
+        $em->flush();
+
+        return $this->json(['success' => true, 'panier' => $panier], 200, [], ['groups' => 'panier:read']);
+    }
+
+    #[Route('/panier/remove', name: 'remove_from_panier', methods: ['POST'])]
+    public function removeFromPanier(Request $request, ClientRepository $clientRepository, PanierRepository $panierRepository, EntityManagerInterface $em): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $clientId = $data['clientId'] ?? null;
+        $productId = $data['productId'] ?? null;
+
+        if (!$clientId || !$productId) {
+            return $this->json(['success' => false, 'message' => 'Client ID et Product ID requis'], 400);
+        }
+
+        $client = $clientRepository->find($clientId);
+        if (!$client) {
+            return $this->json(['success' => false, 'message' => 'Client non trouvé'], 404);
+        }
+
+        $panier = $panierRepository->findOneBy(['idclient' => $client]);
+        if (!$panier) {
+            return $this->json(['success' => false, 'message' => 'Panier vide'], 404);
+        }
+
+        $items = $panier->getItems();
+        $items = array_filter($items, function($item) use ($productId) {
+            return $item['id'] !== $productId;
+        });
+
+        $panier->setItems(array_values($items));
+        $panier->setUpdatedAt(new \DateTimeImmutable());
+        $em->flush();
+
+        return $this->json(['success' => true, 'panier' => $panier], 200, [], ['groups' => 'panier:read']);
+    }
+
+    #[Route('/panier/clear', name: 'clear_panier', methods: ['POST'])]
+    public function clearPanier(Request $request, ClientRepository $clientRepository, PanierRepository $panierRepository, EntityManagerInterface $em): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $clientId = $data['clientId'] ?? null;
+
+        if (!$clientId) {
+            return $this->json(['success' => false, 'message' => 'Client ID requis'], 400);
+        }
+
+        $client = $clientRepository->find($clientId);
+        if (!$client) {
+            return $this->json(['success' => false, 'message' => 'Client non trouvé'], 404);
+        }
+
+        $panier = $panierRepository->findOneBy(['idclient' => $client]);
+        if ($panier) {
+            $panier->setItems([]);
+            $panier->setUpdatedAt(new \DateTimeImmutable());
+            $em->flush();
+        }
+
+        return $this->json(['success' => true, 'message' => 'Panier vidé']);
     }
 }

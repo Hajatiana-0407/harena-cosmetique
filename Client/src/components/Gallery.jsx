@@ -199,6 +199,7 @@ export default function Gallery() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState("grid"); // "grid" ou "list"
@@ -207,6 +208,12 @@ export default function Gallery() {
     let isMounted = true;
     (async () => {
       try {
+        // Fetch categories
+        const catRes = await api.get('/categories');
+        if (isMounted && Array.isArray(catRes.data)) {
+            setCategories(catRes.data);
+        }
+
         // Check for stored search results first
         const storedResults = localStorage.getItem('searchResults');
         const storedQuery = localStorage.getItem('searchQuery');
@@ -224,6 +231,7 @@ export default function Gallery() {
             reviews: p.reviews || 0,
             price: p.prix || p.price || 0,
             category: p.categorie?.nom || p.category || "autres",
+            categoryId: p.categorie?.id
           }));
           setProducts(normalized);
           setSearch(storedQuery); // Set the search input to show the query
@@ -244,6 +252,7 @@ export default function Gallery() {
             reviews: p.reviews || 0,
             price: p.prix || p.price || 0,
             category: p.categorie?.nom || p.category || "autres",
+            categoryId: p.categorie?.id
           }));
           setProducts(normalized);
         }
@@ -256,159 +265,13 @@ export default function Gallery() {
     return () => { isMounted = false; };
   }, []);
 
+  // Unified filtering logic
+  const filteredProducts = products.filter((p) => {
+      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+      const matchesFilter = filter === "all" || p.category === filter || p.categoryId == filter; // Check both name and ID
+      return matchesSearch && matchesFilter;
+  });
 
-
-
-
-  // Filtrage pour produits cheveux
-  const filteredProductsCheveux = products.filter(
-    (p) =>
-      (filter === "all" || p.category === filter) &&
-      p.name.toLowerCase().includes(search.toLowerCase()) &&
-      (p.category === "cheveux" || p.category === "soin" || filter === "all")
-  );
-  // Composants flèches personnalisées
-  const CustomNextArrow = (props) => {
-    const { className, style, onClick } = props;
-    return (
-      <div
-        className={`${className} slick-next`}
-        style={{
-          ...style,
-          display: 'block',
-          background: '#5C4033',
-          borderRadius: '50%',
-          width: '40px',
-          height: '40px',
-          right: '-50px',
-          zIndex: 1,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-        }}
-        onClick={onClick}
-      >
-        <svg
-          className="w-6 h-6 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </div>
-    );
-  };
-
-  const CustomPrevArrow = (props) => {
-    const { className, style, onClick } = props;
-    return (
-      <div
-        className={`${className} slick-prev`}
-        style={{
-          ...style,
-          display: 'block',
-          background: '#5C4033',
-          borderRadius: '50%',
-          width: '40px',
-          height: '40px',
-          left: '-50px',
-          zIndex: 1,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-        }}
-        onClick={onClick}
-      >
-        <svg
-          className="w-6 h-6 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </div>
-    );
-  };
-
-  // Paramètres carrousel pour cheveux
-  const settingsCheveux = {
-    dots: true,
-    infinite: filteredProductsCheveux.length > 1,
-    speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 3000,
-    pauseOnHover: true,
-    nextArrow: <CustomNextArrow />,
-    prevArrow: <CustomPrevArrow />,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-          infinite: filteredProductsCheveux.length > 1,
-          autoplay: true,
-          autoplaySpeed: 3000,
-          nextArrow: <CustomNextArrow />,
-          prevArrow: <CustomPrevArrow />
-        }
-      },
-      {
-        breakpoint: 640,
-        settings: {
-          slidesToShow: 1,
-          infinite: filteredProductsCheveux.length > 1,
-          autoplay: true,
-          autoplaySpeed: 3000,
-          nextArrow: <CustomNextArrow />,
-          prevArrow: <CustomPrevArrow />
-        }
-      },
-    ],
-  };
-  // Filtrage pour produits visage
-  const filteredProductsVisage = products.filter(
-    (p) =>
-      (filter === "all" || p.category === filter) &&
-      p.name.toLowerCase().includes(search.toLowerCase()) &&
-      (p.category === "visage" || p.category === "soin" || filter === "all")
-  );
-  // Paramètres carrousel pour visage
-  const settingsVisage = {
-    dots: true,
-    infinite: filteredProductsVisage.length > 1,
-    speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 3000,
-    pauseOnHover: true,
-    nextArrow: <CustomNextArrow />,
-    prevArrow: <CustomPrevArrow />,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-          infinite: filteredProductsVisage.length > 1,
-          autoplay: true,
-          autoplaySpeed: 3000,
-          nextArrow: <CustomNextArrow />,
-          prevArrow: <CustomPrevArrow />
-        }
-      },
-      {
-        breakpoint: 640,
-        settings: {
-          slidesToShow: 1,
-          infinite: filteredProductsVisage.length > 1,
-          autoplay: true,
-          autoplaySpeed: 3000,
-          nextArrow: <CustomNextArrow />,
-          prevArrow: <CustomPrevArrow />
-        }
-      },
-    ],
-  };
   return (
     <section className="bg-gray-50 p-10 py-8 pt-20">
       <div className="mx-auto max-w-screen-xl px-4 ">
@@ -443,10 +306,10 @@ export default function Gallery() {
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             >
-              <option value="all">Tous</option>
-              <option value="soin">Soins</option>
-              <option value="cheveux">Cheveux</option>
-              <option value="savon">Savons</option>
+              <option value="all">Toutes catégories</option>
+              {categories.map(cat => (
+                  <option key={cat.id} value={cat.nom}>{cat.nom}</option>
+              ))}
             </select>
 
             <input
@@ -459,26 +322,25 @@ export default function Gallery() {
           </div>
         </div>
         <div className="text-left text-stone-800 mb-5 mt-5 pl-5 min-h-[3rem]">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Explicabo neque id nobis fugiat. Perspiciatis dignissimos eos officia atque hic, expedita quis? Nihil iusto ad placeat maiores odio architecto optio quidem?
-          Cupiditate fugit vitae voluptatem numquam magni, sunt quis t
+          Découvrez notre gamme complète de produits naturels, conçus pour votre bien-être et celui de la planète.
         </div>
 
 
-        {/* Affichage des produits cheveux */}
+        {/* Affichage des produits filtrés */}
         <div className="rounded-lg border bg-white p-4 shadow-md">
           {loading ? (
             <div className="text-center py-10">Chargement des produits...</div>
-          ) : filteredProductsCheveux.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">Aucun produit pour cheveux trouvé</div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">Aucun produit trouvé</div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProductsCheveux.map((product) => (
+              {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} viewMode={viewMode} />
               ))}
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredProductsCheveux.map((product) => (
+              {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} viewMode={viewMode} />
               ))}
             </div>

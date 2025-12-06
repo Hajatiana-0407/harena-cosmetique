@@ -40,9 +40,9 @@ class Produit
     #[Groups(['categorie:read', 'produit:read'])] 
     private ?float $prix = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'integer')]
     #[Groups(['categorie:read', 'produit:read'])] 
-    private ?string $stock = null;
+    private ?int $stock = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['categorie:read', 'produit:read'])] 
@@ -73,11 +73,11 @@ class Produit
     #[Groups(['produit:read'])]
     private $nombreAvisParProduit = 0;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: 'json', nullable: true)]
     #[Groups(['produit:read'])]
-    private ?string $compositions = null;
+    private array $compositions = [];
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['produit:read'])]
     private ?string $presentation = null;
 
@@ -151,12 +151,12 @@ class Produit
         return $this;
     }
 
-    public function getStock(): ?string
+    public function getStock(): ?int
     {
         return $this->stock;
     }
 
-    public function setStock(string $stock): static
+    public function setStock(int $stock): static
     {
         $this->stock = $stock;
         return $this;
@@ -249,14 +249,14 @@ class Produit
         return $this;
     }
 
-    public function getCompositions(): ?string
+    public function getCompositions(): array
     {
         return $this->compositions;
     }
 
-    public function setCompositions(?string $compositions): static
+    public function setCompositions(?array $compositions): static
     {
-        $this->compositions = $compositions;
+        $this->compositions = $compositions ?? [];
 
         return $this;
     }
