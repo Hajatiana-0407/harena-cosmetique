@@ -44,10 +44,10 @@ class TestDataFixtures extends Fixture
 
         // Créer des produits
         $produitsData = [
-            ['Shampoing aux herbes', 'Shampoing naturel aux extraits d\'herbes', 'Appliquer sur cheveux mouillés, masser et rincer', 15000, 'En stock'],
-            ['Crème hydratante', 'Crème hydratante pour le visage', 'Appliquer matin et soir sur peau propre', 25000, 'En stock'],
-            ['Savon au karité', 'Savon artisanal au beurre de karité', 'Utiliser quotidiennement pour le corps', 8000, 'En stock'],
-            ['Huile d\'argan', 'Huile d\'argan pure du Maroc', 'Quelques gouttes suffisent', 30000, 'En stock']
+            ['Shampoing aux herbes', 'Shampoing naturel aux extraits d\'herbes', 'Appliquer sur cheveux mouillés, masser et rincer', 15000, 100],
+            ['Crème hydratante', 'Crème hydratante pour le visage', 'Appliquer matin et soir sur peau propre', 25000, 50],
+            ['Savon au karité', 'Savon artisanal au beurre de karité', 'Utiliser quotidiennement pour le corps', 8000, 200],
+            ['Huile d\'argan', 'Huile d\'argan pure du Maroc', 'Quelques gouttes suffisent', 30000, 80]
         ];
 
         $produits = [];
@@ -62,7 +62,7 @@ class TestDataFixtures extends Fixture
             $produit->setImageMini1('/image/beauty.jpg');
             $produit->setImageMini2('/image/beauty.jpg');
             $produit->setImageMini3('/image/beauty.jpg');
-            $produit->setCompositions('Ingrédients naturels');
+            $produit->setCompositions(['Ingrédients naturels']);
             $produit->setPresentation('Produit de qualité');
             $produit->setIdCategorie($categories[$index % count($categories)]);
             $manager->persist($produit);

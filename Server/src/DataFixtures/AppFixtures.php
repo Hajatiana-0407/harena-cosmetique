@@ -84,13 +84,13 @@ class AppFixtures extends Fixture
             $prod->setDefinition($sample[1]);
             $prod->setUtilisation($sample[2]);
             $prod->setPrix($faker->randomFloat(2, $sample[3], $sample[3]+10));
-            $prod->setStock((string) $faker->numberBetween($sample[4], $sample[4]+50));
+            $prod->setStock($faker->numberBetween($sample[4], $sample[4]+50));
             $prod->setImage("image_$i.jpg");
             $prod->setImageMini1("mini1_$i.jpg");
             $prod->setImageMini2("mini2_$i.jpg");
             $prod->setImageMini3("mini3_$i.jpg");
             $prod->setNombreAvisParProduit(0);
-            $prod->setCompositions("Ingrédients naturels de haute qualité");
+            $prod->setCompositions(["Ingrédients naturels de haute qualité"]);
             $prod->setPresentation("Ce produit est soigneusement sélectionné pour répondre à vos besoins.");
 
             $manager->persist($prod);

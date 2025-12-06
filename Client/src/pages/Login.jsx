@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import api from "../API/url";
 
 // --- Icône SVG pour le bouton Google ---
@@ -33,7 +34,6 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
     setLoading(true);
 
     // Sanitize inputs
@@ -42,7 +42,7 @@ const LoginPage = () => {
 
     // Client-side validation
     if (!sanitizedEmail || !sanitizedPassword) {
-      setMessage("Veuillez remplir tous les champs");
+      toast.error("Veuillez remplir tous les champs");
       setLoading(false);
       return;
     }
@@ -50,14 +50,14 @@ const LoginPage = () => {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(sanitizedEmail)) {
-      setMessage("Format d'email invalide");
+      toast.error("Format d'email invalide");
       setLoading(false);
       return;
     }
 
     // Validate password length
     if (sanitizedPassword.length < 6) {
-      setMessage("Le mot de passe doit contenir au moins 6 caractères");
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
       setLoading(false);
       return;
     }
@@ -69,16 +69,16 @@ const LoginPage = () => {
       });
 
       if (data?.success) {
-        setMessage("Connexion réussie");
+        toast.success("Connexion réussie");
         // Use sessionStorage instead of localStorage for better security
         sessionStorage.setItem("client", JSON.stringify(data.client));
         window.dispatchEvent(new Event("authChange"));
         navigate("/");
       } else {
-        setMessage(data?.message || "Échec de la connexion");
+        toast.error(data?.message || "Échec de la connexion");
       }
     } catch (err) {
-      setMessage(
+      toast.error(
         err?.response?.data?.message || err.message || "Erreur de connexion"
       );
     } finally {

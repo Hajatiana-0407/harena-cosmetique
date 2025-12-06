@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import api from '../API/url';
 
 // Remplacement des imports externes par des icônes SVG intégrées pour garantir la compilation
@@ -87,7 +88,7 @@ const SignUpPage = () => {
 
                     // Additional security check
                     if (!sanitizedName || !sanitizedEmail || !sanitizedPassword || !sanitizedTelephone) {
-                        setErrors({ form: 'Tous les champs sont requis' });
+                        toast.error('Tous les champs sont requis');
                         return;
                     }
 
@@ -101,19 +102,21 @@ const SignUpPage = () => {
                     });
                     
                     if (data?.success) {
+                        toast.success("Inscription réussie !");
                         // Store client info in sessionStorage instead of localStorage for better security
                         sessionStorage.setItem('client', JSON.stringify(data.client));
                         window.dispatchEvent(new Event('authChange'));
                         navigate('/');
                     } else {
                         // Handle registration failure, e.g., display an error message
-                        setErrors({ form: data?.message || 'Échec de l\'inscription' });
+                        toast.error(data?.message || 'Échec de l\'inscription');
                     }
                 } catch (err) {
-                    setErrors({ form: err?.response?.data?.message || err.message || 'Erreur lors de l\'inscription' });
+                    toast.error(err?.response?.data?.message || err.message || 'Erreur lors de l\'inscription');
                 }
             })();
         } else {
+            toast.error('Veuillez corriger les erreurs dans le formulaire');
             console.log('Erreurs de validation, soumission bloquée.');
         }
     };

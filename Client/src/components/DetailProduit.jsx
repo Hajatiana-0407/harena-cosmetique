@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import api from '../API/url';
 
 // --- Données Statiques du Produit (fallback) ---
@@ -246,6 +247,7 @@ const DetailProduit = ({ id }) => {
     const existing = cart.find(item => item.id === product.id);
     if (existing) {
       existing.quantity += quantity;
+      toast.info("Quantité mise à jour dans le panier !");
     } else {
       cart.push({
         id: product.id,
@@ -260,6 +262,7 @@ const DetailProduit = ({ id }) => {
         deliveryTime: 'Maintenant',
         isSelected: true,
       });
+      toast.success("Produit ajouté au panier !");
     }
     localStorage.setItem('cart', JSON.stringify(cart));
     navigate('/panier');
