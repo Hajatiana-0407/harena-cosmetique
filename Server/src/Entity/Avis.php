@@ -33,6 +33,7 @@ class Avis
      * @var Collection<int, Produit>
      */
     #[ORM\ManyToMany(targetEntity: Produit::class, inversedBy: 'avis')]
+    #[ORM\JoinTable(name: 'produit_avis')]
     private Collection $produit;
 
     #[ORM\Column(length: 255, nullable: true)]

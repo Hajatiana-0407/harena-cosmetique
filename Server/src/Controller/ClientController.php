@@ -21,7 +21,7 @@ final class ClientController extends AbstractController
      * * @param Request $request La requête HTTP entrante.
      * // Injecter ClientRepository et UserPasswordHasherInterface ici dans un vrai projet
      */
-    #[Route('/api/login', name: 'api_login', methods: ['GET','POST'])]
+    #[Route('/api/login', name: 'api_login', methods: ['POST'])]
     public function login(
         Request $request,
         ClientRepository $clientRepository,
@@ -30,8 +30,12 @@ final class ClientController extends AbstractController
         try {
             $data = json_decode($request->getContent(), true);
 
+            // Sanitize and validate inputs
+            $email = isset($data['email']) ? trim(strip_tags($data['email'])) : null;
+            $password = isset($data['password']) ? $data['password'] : null;
+
             // Validation des champs
-            if (!isset($data['email']) || !isset($data['password'])) {
+            if (!$email || !$password) {
                 return new JsonResponse([
                     'success' => false,
                     'message' => 'Email et mot de passe requis'
@@ -39,28 +43,29 @@ final class ClientController extends AbstractController
             }
 
             // Validation du format email
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return new JsonResponse([
                     'success' => false,
                     'message' => 'Format d\'email invalide'
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            // Recherche du client
-            $client = $clientRepository->findOneBy(['email' => $data['email']]);
-
-            if (!$client) {
+            // Validate password length
+            if (strlen($password) < 6) {
                 return new JsonResponse([
                     'success' => false,
-                    'message' => 'Email ou mot de passe incorrect'
+                    'message' => 'Identifiants invalides'
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Vérification du mot de passe
-            if (!$passwordHasher->isPasswordValid($client, $data['password'])) {
+            // Recherche du client
+            $client = $clientRepository->findOneBy(['email' => $email]);
+
+            // Use generic error message to prevent user enumeration
+            if (!$client || !$passwordHasher->isPasswordValid($client, $password)) {
                 return new JsonResponse([
                     'success' => false,
-                    'message' => 'Email ou mot de passe incorrect'
+                    'message' => 'Identifiants invalides'
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
@@ -77,15 +82,15 @@ final class ClientController extends AbstractController
             $session->set('client_nom', $client->getNom());
             $session->set('client_prenom', $client->getPrenom());
 
-            // Retour des informations du client connecté
+            // Retour des informations sanitisées du client connecté
             return new JsonResponse([
                 'success' => true,
                 'message' => 'Connexion réussie',
                 'client' => [
                     'id' => $client->getId(),
-                    'email' => $client->getEmail(),
-                    'nom' => $client->getNom(),
-                    'prenom' => $client->getPrenom()
+                    'email' => htmlspecialchars($client->getEmail(), ENT_QUOTES, 'UTF-8'),
+                    'nom' => htmlspecialchars($client->getNom(), ENT_QUOTES, 'UTF-8'),
+                    'prenom' => htmlspecialchars($client->getPrenom(), ENT_QUOTES, 'UTF-8')
                 ]
             ], Response::HTTP_OK);
 
@@ -169,28 +174,25 @@ final class ClientController extends AbstractController
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception('Format JSON invalide: ' . json_last_error_msg());
             }
-
-            // Debug - Afficher les données reçues
-            error_log('Données reçues: ' . print_r($data, true));
     
+            // Sanitize and validate inputs
+            $nom = isset($data['nom_client']) ? trim(strip_tags($data['nom_client'])) : '';
+            $prenom = isset($data['prenom_client']) ? trim(strip_tags($data['prenom_client'])) : '';
+            $email = isset($data['email_client']) ? trim(strip_tags($data['email_client'])) : '';
+            $phone = isset($data['phone_client']) ? preg_replace('/[^0-9]/', '', $data['phone_client']) : '';
+            $password = isset($data['password_client']) ? $data['password_client'] : '';
+            $adresse = isset($data['adresse_client']) ? trim(strip_tags($data['adresse_client'])) : '';
+
             // Validation des champs requis
-            $requiredFields = ['nom_client', 'prenom_client', 'email_client', 'phone_client', 'password_client'];
-            $missingFields = [];
-            foreach ($requiredFields as $field) {
-                if (!isset($data[$field]) || empty($data[$field])) {
-                    $missingFields[] = $field;
-                }
-            }
-            if (!empty($missingFields)) {
+            if (!$nom || !$prenom || !$email || !$phone || !$password) {
                 return $this->json([
                     'success' => false,
-                    'error' => "Champs manquants: " . implode(', ', $missingFields),
-                    'received_data' => $data
+                    'error' => 'Tous les champs requis doivent être remplis'
                 ], Response::HTTP_BAD_REQUEST);
             }
     
             // Vérifier si l'email existe déjà
-            $existingClient = $clientRepository->findOneBy(['email' => $data['email_client']]);
+            $existingClient = $clientRepository->findOneBy(['email' => $email]);
             if ($existingClient) {
                 return $this->json([
                     'success' => false,
@@ -199,15 +201,30 @@ final class ClientController extends AbstractController
             }
     
             // Validation du format email
-            if (!filter_var($data['email_client'], FILTER_VALIDATE_EMAIL)) {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
                     'success' => false,
                     'error' => 'Format d\'email invalide.'
                 ], Response::HTTP_BAD_REQUEST);
             }
+
+            // Validate password strength
+            if (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Validate name fields
+            if (!preg_match('/^[a-zA-ZÀ-ÿ\s\-\']+$/', $nom) || !preg_match('/^[a-zA-ZÀ-ÿ\s\-\']+$/', $prenom)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Les noms ne doivent contenir que des lettres'
+                ], Response::HTTP_BAD_REQUEST);
+            }
     
-            // Validation du numéro de téléphone (doit être numérique)
-            $phone = preg_replace('/[^0-9]/', '', $data['phone_client']);
+            // Validation du numéro de téléphone
             if (empty($phone)) {
                 return $this->json([
                     'success' => false,
@@ -217,28 +234,16 @@ final class ClientController extends AbstractController
     
             try {
                 $client = new Client();
-                $client->setNom($data['nom_client']);
-                $client->setPrenom($data['prenom_client']);
-                $client->setEmail($data['email_client']);
-                $client->setTelephone((int)$phone); // Utilisation du numéro nettoyé
-                $client->setAdresse($data['adresse_client']);
+                $client->setNom($nom);
+                $client->setPrenom($prenom);
+                $client->setEmail($email);
+                $client->setTelephone((int)$phone);
+                $client->setAdresse($adresse);
                 $client->setCreatedAt(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s')));
 
                 // Hachage du mot de passe avant de le stocker
-                $hashedPassword = $passwordHasher->hashPassword(
-                    $client,
-                    $data['password_client']
-                );
+                $hashedPassword = $passwordHasher->hashPassword($client, $password);
                 $client->setPassword($hashedPassword);
-        
-                // Debug - Afficher l'objet client avant persistance
-                error_log('Client avant persistance: ' . print_r([
-                    'nom' => $client->getNom(),
-                    'prenom' => $client->getPrenom(),
-                    'email' => $client->getEmail(),
-                    'telephone' => $client->getTelephone(),
-                    'adresse' => $client->getAdresse(),
-                ], true));
         
                 $em->persist($client);
                 $em->flush();
@@ -248,20 +253,18 @@ final class ClientController extends AbstractController
                     'message' => 'Client créé avec succès',
                     'client' => [
                         'id' => $client->getId(),
-                        'nom' => $client->getNom(),
-                        'prenom' => $client->getPrenom(),
-                        'email' => $client->getEmail(),
+                        'nom' => htmlspecialchars($client->getNom(), ENT_QUOTES, 'UTF-8'),
+                        'prenom' => htmlspecialchars($client->getPrenom(), ENT_QUOTES, 'UTF-8'),
+                        'email' => htmlspecialchars($client->getEmail(), ENT_QUOTES, 'UTF-8'),
                         'telephone' => $client->getTelephone(),
-                        'adresse' => $client->getAdresse(),
+                        'adresse' => htmlspecialchars($client->getAdresse(), ENT_QUOTES, 'UTF-8'),
                         'created_at' => $client->getCreatedAt()->format('Y-m-d H:i:s')
                     ]
                 ], Response::HTTP_CREATED);
             } catch (\Exception $e) {
-                error_log('Erreur lors de la persistance: ' . $e->getMessage());
                 return $this->json([
                     'success' => false,
-                    'error' => 'Erreur lors de la sauvegarde en base de données',
-                    'details' => $e->getMessage()
+                    'error' => 'Erreur lors de la sauvegarde en base de données'
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
     

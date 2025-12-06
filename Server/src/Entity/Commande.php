@@ -33,6 +33,10 @@ class Commande
     #[Groups('commande:read')] // Propriété visible
     private ?string $statut = null;
 
+    #[ORM\Column]
+    #[Groups('commande:read')]
+    private array $items = [];
+
     public function getId(): ?int
     {
         return $this->id;
@@ -82,6 +86,18 @@ class Commande
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
+
+        return $this;
+    }
+
+    public function getItems(): array
+    {
+        return $this->items;
+    }
+
+    public function setItems(array $items): static
+    {
+        $this->items = $items;
 
         return $this;
     }

@@ -74,17 +74,30 @@ const SignUpPage = () => {
         if (validate()) {
             (async () => {
                 try {
+                    // Sanitize inputs before sending
+                    const sanitizedName = formData.name.trim();
+                    const sanitizedEmail = formData.email.trim().toLowerCase();
+                    const sanitizedPassword = formData.password;
+
+                    // Additional security check
+                    if (!sanitizedName || !sanitizedEmail || !sanitizedPassword) {
+                        setErrors({ form: 'Tous les champs sont requis' });
+                        return;
+                    }
+
                     const { data } = await api.post('/auth/register', {
-                        nom: formData.name,
-                        prenom: formData.name, // Assuming name is full name, you might want to split it
-                        email: formData.email,
-                        password: formData.password,
+                        nom: sanitizedName,
+                        prenom: sanitizedName, // Assuming name is full name, you might want to split it
+                        email: sanitizedEmail,
+                        password: sanitizedPassword,
                         adresse: '', // Add address field if needed
                         telephone: '' // Add phone field if needed
                     });
+                    
                     if (data?.success) {
-                        // Store client info and redirect to homepage
-                        localStorage.setItem('client', JSON.stringify(data.client));
+                        // Store client info in sessionStorage instead of localStorage for better security
+                        sessionStorage.setItem('client', JSON.stringify(data.client));
+                        window.dispatchEvent(new Event('authChange'));
                         navigate('/');
                     } else {
                         // Handle registration failure, e.g., display an error message
@@ -223,6 +236,13 @@ const SignUpPage = () => {
                             Créer mon Compte
                         </button>
                     </div>
+
+                    {/* Affichage des erreurs de formulaire */}
+                    {errors.form && (
+                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                            <p className="text-sm text-red-600 text-center">{errors.form}</p>
+                        </div>
+                    )}
                 </form>
 
                 {/* --- Lien de Connexion --- */}

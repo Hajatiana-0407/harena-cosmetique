@@ -49,9 +49,13 @@ class Client implements PasswordAuthenticatedUserInterface
     #[Groups('client:read')] // 👈 AJOUTÉ
     private ?string $adresse = null;
 
-    #[ORM\Column]
-    #[Groups('client:read')] // 👈 AJOUTÉ
-    private ?int $telephone = null;
+    #[ORM\Column(length: 255)]
+    #[Groups('client:read')]
+    private ?string $telephone = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups('client:read')]
+    private ?string $photo = null;
 
     #[ORM\Column(type: "datetime_immutable", nullable: true)]
     #[Groups('client:read')]
@@ -79,6 +83,12 @@ class Client implements PasswordAuthenticatedUserInterface
     private Collection $Contenu;
 
     /**
+     * @var Collection<int, Message>
+     */
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'client')]
+    private Collection $messages;
+
+    /**
      * @var Collection<int, Messenger>
      */
     #[ORM\OneToMany(targetEntity: Messenger::class, mappedBy: 'client')]
@@ -95,6 +105,7 @@ class Client implements PasswordAuthenticatedUserInterface
         $this->commandes = new ArrayCollection();
         $this->temoignages = new ArrayCollection();
         $this->Contenu = new ArrayCollection();
+        $this->messages = new ArrayCollection();
         $this->messengers = new ArrayCollection();
         $this->contacts = new ArrayCollection();
     }
@@ -169,14 +180,26 @@ class Client implements PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getTelephone(): ?int
+    public function getTelephone(): ?string
     {
         return $this->telephone;
     }
 
-    public function setTelephone(int $telephone): static
+    public function setTelephone(string $telephone): static
     {
         $this->telephone = $telephone;
+
+        return $this;
+    }
+
+    public function getPhoto(): ?string
+    {
+        return $this->photo;
+    }
+
+    public function setPhoto(?string $photo): static
+    {
+        $this->photo = $photo;
 
         return $this;
     }
@@ -274,6 +297,36 @@ class Client implements PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($contenu->getIdClient() === $this) {
                 $contenu->setIdClient(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function addMessage(Message $message): static
+    {
+        if (!$this->messages->contains($message)) {
+            $this->messages->add($message);
+            $message->setClient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessage(Message $message): static
+    {
+        if ($this->messages->removeElement($message)) {
+            // set the owning side to null (unless already changed)
+            if ($message->getClient() === $this) {
+                $message->setClient(null);
             }
         }
 

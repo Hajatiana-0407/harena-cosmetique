@@ -20,7 +20,16 @@ class Contact
     private ?string $messages = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $Date_post = null;
+    private ?\DateTimeImmutable $created_At = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $sujet = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $email = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $nom = null;
 
     public function getId(): ?int
     {
@@ -51,14 +60,50 @@ class Contact
         return $this;
     }
 
-    public function getDatePost(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->Date_post;
+        return $this->created_At;
     }
 
-    public function setDatePost(\DateTimeImmutable $Date_post): static
+    public function setCreatedAt(\DateTimeImmutable $created_At): static
     {
-        $this->Date_post = $Date_post;
+        $this->created_At = $created_At;
+
+        return $this;
+    }
+
+    public function getSujet(): ?string
+    {
+        return $this->sujet;
+    }
+
+    public function setSujet(string $sujet): static
+    {
+        $this->sujet = $sujet;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): static
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(?string $nom): static
+    {
+        $this->nom = $nom;
 
         return $this;
     }

@@ -181,7 +181,7 @@ class Produit
         return $this->avis;
     }
 
-    public function addAvi(Avis $avi): static
+    public function addAvis(Avis $avi): static
     {
         if (!$this->avis->contains($avi)) {
             $this->avis->add($avi);
@@ -192,7 +192,7 @@ class Produit
         return $this;
     }
 
-    public function removeAvi(Avis $avi): static
+    public function removeAvis(Avis $avi): static
     {
         if ($this->avis->removeElement($avi)) {
             // Si la méthode removeProduit existe dans Avis.php

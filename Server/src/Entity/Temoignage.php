@@ -17,11 +17,9 @@ class Temoignage
     #[Groups(['temoignage:read'])]
     private ?int $id = null;
 
-    /**
-     * @var Collection<int, Client>
-     */
-    #[ORM\ManyToMany(targetEntity: Client::class, inversedBy: 'temoignages')]
-    private Collection $id_client;
+    #[ORM\ManyToOne(targetEntity: Client::class, inversedBy: 'temoignages')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Client $id_client = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['temoignage:read'])]
@@ -35,9 +33,16 @@ class Temoignage
     #[Groups(['temoignage:read'])]
     private ?string $image = null;
 
+    #[ORM\Column(length: 255)]
+    #[Groups(['temoignage:read'])]
+    private ?string $titre = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['temoignage:read'])]
+    private ?string $auteur = null;
+
     public function __construct()
     {
-        $this->id_client = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -45,26 +50,14 @@ class Temoignage
         return $this->id;
     }
 
-    /**
-     * @return Collection<int, Client>
-     */
-    public function getIdClient(): Collection
+    public function getIdClient(): ?Client
     {
         return $this->id_client;
     }
 
-    public function addIdClient(Client $idClient): static
+    public function setIdClient(?Client $id_client): static
     {
-        if (!$this->id_client->contains($idClient)) {
-            $this->id_client->add($idClient);
-        }
-
-        return $this;
-    }
-
-    public function removeIdClient(Client $idClient): static
-    {
-        $this->id_client->removeElement($idClient);
+        $this->id_client = $id_client;
 
         return $this;
     }
@@ -101,6 +94,30 @@ class Temoignage
     public function setImage(string $image): static
     {
         $this->image = $image;
+
+        return $this;
+    }
+
+    public function getTitre(): ?string
+    {
+        return $this->titre;
+    }
+
+    public function setTitre(string $titre): static
+    {
+        $this->titre = $titre;
+
+        return $this;
+    }
+
+    public function getAuteur(): ?string
+    {
+        return $this->auteur;
+    }
+
+    public function setAuteur(?string $auteur): static
+    {
+        $this->auteur = $auteur;
 
         return $this;
     }

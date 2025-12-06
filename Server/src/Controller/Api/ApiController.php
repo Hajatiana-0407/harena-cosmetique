@@ -152,38 +152,57 @@ final class ApiController extends AbstractController
         return $this->json($avis, 200, [], ['groups' => 'avis:read']);
     }
 
-    #[Route('/auth/login', name: 'auth_login', methods: ['GET','POST'])]
+    #[Route('/auth/login', name: 'auth_login', methods: ['POST'])]
     public function login(Request $request, ClientRepository $clientRepository, UserPasswordHasherInterface $passwordHasher): Response
     {
-        $email = null;
-        $password = null;
+        // Only accept POST requests for security
+        $data = json_decode($request->getContent(), true) ?? [];
+        
+        // Sanitize and validate inputs
+        $email = isset($data['email']) ? trim(strip_tags($data['email'])) : null;
+        $password = isset($data['password']) ? $data['password'] : null;
 
-        if ($request->isMethod('GET')) {
-            $email = $request->query->get('email');
-            $password = $request->query->get('password');
-        } else {
-            $data = json_decode($request->getContent(), true) ?? [];
-            $email = $data['email'] ?? null;
-            $password = $data['password'] ?? null;
+        // Validate required fields
+        if (!$email || !$password) {
+            return $this->json([
+                'success' => false, 
+                'message' => 'Email et mot de passe requis'
+            ], 400);
         }
 
-        if (!$email || !$password) {
-            return $this->json(['success' => false, 'message' => 'Email and password required'], 400);
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->json([
+                'success' => false, 
+                'message' => 'Format d\'email invalide'
+            ], 400);
+        }
+
+        // Validate password length (minimum security check)
+        if (strlen($password) < 6) {
+            return $this->json([
+                'success' => false, 
+                'message' => 'Identifiants invalides'
+            ], 401);
         }
 
         $client = $clientRepository->findOneBy(['email' => $email]);
 
+        // Use generic error message to prevent user enumeration
         if (!$client || !$passwordHasher->isPasswordValid($client, $password)) {
-            return $this->json(['success' => false, 'message' => 'Invalid credentials'], 401);
+            return $this->json([
+                'success' => false, 
+                'message' => 'Identifiants invalides'
+            ], 401);
         }
 
-        // Return client data without password
+        // Return sanitized client data without password
         $clientData = [
             'id' => $client->getId(),
-            'nom' => $client->getNom(),
-            'prenom' => $client->getPrenom(),
-            'email' => $client->getEmail(),
-            'adresse' => $client->getAdresse(),
+            'nom' => htmlspecialchars($client->getNom(), ENT_QUOTES, 'UTF-8'),
+            'prenom' => htmlspecialchars($client->getPrenom(), ENT_QUOTES, 'UTF-8'),
+            'email' => htmlspecialchars($client->getEmail(), ENT_QUOTES, 'UTF-8'),
+            'adresse' => htmlspecialchars($client->getAdresse() ?? '', ENT_QUOTES, 'UTF-8'),
             'telephone' => $client->getTelephone(),
         ];
 
@@ -199,13 +218,15 @@ final class ApiController extends AbstractController
     ): Response {
         $data = json_decode($request->getContent(), true) ?? [];
 
-        $email = trim($data['email'] ?? '');
-        $password = (string)($data['password'] ?? '');
-        $nom = trim($data['nom'] ?? '');
-        $prenom = trim($data['prenom'] ?? '');
-        $adresse = trim($data['adresse'] ?? '');
-        $telephone = $data['telephone'] ?? null;
+        // Sanitize and validate inputs
+        $email = isset($data['email']) ? trim(strip_tags($data['email'])) : '';
+        $password = isset($data['password']) ? $data['password'] : '';
+        $nom = isset($data['nom']) ? trim(strip_tags($data['nom'])) : '';
+        $prenom = isset($data['prenom']) ? trim(strip_tags($data['prenom'])) : '';
+        $adresse = isset($data['adresse']) ? trim(strip_tags($data['adresse'])) : '';
+        $telephone = isset($data['telephone']) ? preg_replace('/[^0-9]/', '', $data['telephone']) : null;
 
+        // Validate required fields
         if (!$email || !$password || !$nom || !$prenom) {
             return $this->json([
                 'success' => false,
@@ -213,6 +234,31 @@ final class ApiController extends AbstractController
             ], 400);
         }
 
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Format d\'email invalide'
+            ], 400);
+        }
+
+        // Validate password strength (minimum 8 characters, 1 uppercase, 1 number)
+        if (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre'
+            ], 400);
+        }
+
+        // Validate name fields (no numbers or special characters)
+        if (!preg_match('/^[a-zA-ZÀ-ÿ\s\-\']+$/', $nom) || !preg_match('/^[a-zA-ZÀ-ÿ\s\-\']+$/', $prenom)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Les noms ne doivent contenir que des lettres'
+            ], 400);
+        }
+
+        // Check if email already exists
         if ($clientRepository->findOneBy(['email' => $email])) {
             return $this->json([
                 'success' => false,
@@ -220,26 +266,29 @@ final class ApiController extends AbstractController
             ], 409);
         }
 
+        // Create new client
         $client = new Client();
         $client->setEmail($email);
         $client->setNom($nom);
         $client->setPrenom($prenom);
         if ($adresse) { $client->setAdresse($adresse); }
-        if ($telephone !== null && $telephone !== '') { $client->setTelephone((int)$telephone); }
+        if ($telephone) { $client->setTelephone((int)$telephone); }
         $client->setCreatedAt(new \DateTimeImmutable());
 
+        // Hash password
         $hashed = $passwordHasher->hashPassword($client, $password);
         $client->setPassword($hashed);
 
         $em->persist($client);
         $em->flush();
 
+        // Return sanitized client data
         $clientData = [
             'id' => $client->getId(),
-            'nom' => $client->getNom(),
-            'prenom' => $client->getPrenom(),
-            'email' => $client->getEmail(),
-            'adresse' => $client->getAdresse(),
+            'nom' => htmlspecialchars($client->getNom(), ENT_QUOTES, 'UTF-8'),
+            'prenom' => htmlspecialchars($client->getPrenom(), ENT_QUOTES, 'UTF-8'),
+            'email' => htmlspecialchars($client->getEmail(), ENT_QUOTES, 'UTF-8'),
+            'adresse' => htmlspecialchars($client->getAdresse() ?? '', ENT_QUOTES, 'UTF-8'),
             'telephone' => $client->getTelephone(),
         ];
 
