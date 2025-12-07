@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class PapiWebhookController extends AbstractController
 {
-    #[Route('/webhook/papi', name: 'webhook_papi', methods: ['POST'])]
+    #[Route('/api/webhook/papi', name: 'webhook_papi', methods: ['POST'])]
     public function webhook(Request $request): Response
     {
         $data = json_decode($request->getContent(), true);

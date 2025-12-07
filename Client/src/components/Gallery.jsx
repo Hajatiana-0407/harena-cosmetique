@@ -6,6 +6,11 @@ import api from "../API/url";
 function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
   const [isFavorite, setIsFavorite] = useState(false);
 
+  useEffect(() => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    setIsFavorite(favorites.some(item => item.id === product.id));
+  }, [product.id]);
+
   const handleAddToCart = () => {
     if (onAddToCart) {
       onAddToCart(product);
@@ -32,7 +37,24 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
   };
 
   const handleToggleFavorite = () => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    let newFavorites;
+    
+    if (isFavorite) {
+      newFavorites = favorites.filter(item => item.id !== product.id);
+    } else {
+      newFavorites = [...favorites, {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.image,
+        description: product.description || product.name
+      }];
+    }
+    
+    localStorage.setItem('favorites', JSON.stringify(newFavorites));
     setIsFavorite(!isFavorite);
+    
     if (onToggleFavorite) {
       onToggleFavorite(product.id, !isFavorite);
     }

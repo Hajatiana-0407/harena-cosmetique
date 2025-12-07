@@ -1,187 +1,101 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../API/url';
+import { RatingStars } from './Avis';
 
-// --- Données Statiques du Produit (fallback) ---
-const ProductData = {
-  title: "Beurre de soin cheveux Céramide NG & Acide hyaluronique",
-  rating: 4.3,
-  reviewCount: 64,
-  price: 2000,
-  volume: 100, // ml
-  pricePerLiter: 30000, // €/L
-  shortDescription: "Nouveau geste de soin pour cheveux secs à très secs et/ou texturés, ce beurre avec ou sans rinçage démêle, nourrit, prévient la déshydratation, répare et protège. Sa formule 100% d’origine naturelle prend soin des cheveux dès 3 ans.",
-  
-  // Onglets et leur contenu détaillé
-  tabsContent: {
-      "Présentation": {
-          title: "Propriétés & Labels",
-          content: [
-              "Formulé pour les cheveux secs à très secs et/ou texturés, ce beurre facilite le démêlage, apporte brillance, souplesse et douceur à la fibre capillaire.",
-              "Efficacité cliniquement prouvée : Il nourrit, répare et protège. Il prévient la déshydratation des cheveux.",
-              "100% d'origine naturelle. Testé dermatologiquement.",
-              "Convient aux enfants dès 3 ans."
-          ]
-      },
-      "Utilisation": {
-          title: "Conseils d'Application",
-          content: [
-              { type: 'step', title: "1. Avec rinçage : Masque ou Après-shampoing", description: "Appliquer sur cheveux lavés, laisser poser 3 à 5 minutes, rincer. (Cheveux secs et fourchus)" },
-              { type: 'step', title: "2. Sans rinçage : Crème de jour ou Baumes", description: "Appliquer une noisette sur les longueurs et pointes, sans rincer. (Cheveux très secs ou texturés)" }
-          ]
-      },
-      "Composition": {
-          title: "Ingrédients clés & INCI",
-          content: [
-              { type: 'ingredient', name: "Céramide NG de Riz et Acide Hyaluronique", role: "Complexe réparateur, hydratant et protecteur." },
-              { type: 'ingredient', name: "Huile végétale d'Avocat BIO", role: "Riche, gainante, nourrit et fortifie." },
-              { type: 'ingredient', name: "Beurre végétal de Karité BIO et de Mangue", role: "Apporte souplesse, douceur et brillance à la chevelure." }
-          ]
-      }
-  },
-
-
-  // Nouveaux Avis Clients (Exemples)
-  reviews: [
-    { id: 1, author: "Camille D.", date: "12/09/2024", rating: 5, title: "Incroyable douceur!", content: "Ce beurre a transformé mes pointes sèches dès la première utilisation. L'odeur est agréable et mes cheveux texturés sont beaucoup plus faciles à démêler. Je l'utilise sans rinçage, un vrai miracle." },
-    { id: 2, author: "Julien M.", date: "01/08/2024", rating: 4, title: "Bon produit, mais un peu riche", content: "Très nourrissant, c'est indéniable. J'ai les cheveux fins et j'ai dû trouver le bon dosage car il a tendance à alourdir si on en met trop. Idéal en masque hebdomadaire." },
-    { id: 3, author: "Amandine L.", date: "05/07/2024", rating: 5, title: "Produit familial", content: "J'apprécie le côté 100% naturel et le fait que ma fille de 5 ans puisse l'utiliser. Nos cheveux bouclés adorent, ils sont hydratés et brillants. Un indispensable dans la salle de bain." },
-    { id: 4, author: "Marc P.", date: "18/06/2024", rating: 4, title: "Efficace contre la déshydratation", content: "Je l'ai acheté principalement pour ses céramides. Le résultat est là : mes cheveux sont moins cassants et conservent mieux l'humidité. Seul bémol, le pot est un peu petit." }
-  ],
-};
-
-// Couleurs (simulées d'après le site Aroma-Zone)
-const COLOR_PRIMARY = '#b2895f'; // Beige/Marron clair (Accent)
-const COLOR_TEXT = '#4a3428'; // Marron foncé (Texte principal)
-
-// --- Composants Réutilisables ---
-
-// Composant pour simuler les étoiles de notation (Note Moyenne)
-const RatingStars = ({ rating }) => {
-  const fullStars = Math.floor(rating);
-  const partialPercentage = Math.round((rating - fullStars) * 100);
-  const stars = [];
-
-  // SVG de l'étoile
-  const StarSVG = ({ fillPercentage }) => (
-    <svg className="w-5 h-5 transition duration-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.575 30.402">
-        <defs>
-            <linearGradient id={`star-grad-${fillPercentage}`}>
-                <stop offset="0%" stopColor={COLOR_PRIMARY}></stop>
-                <stop offset={`${fillPercentage}%`} stopColor={COLOR_PRIMARY}></stop>
-                <stop offset={`${fillPercentage}%`} stopColor="rgba(178,137,95,0.3)"></stop>
-                <stop offset="100%" stopColor="rgba(178,137,95,0.3)"></stop>
-            </linearGradient>
-        </defs>
-        <path d="m977.223 685.241-7.775 7.8 2.031 10.988-9.836-5.168-9.678 5.211 1.7-11-8.012-7.767 10.885-1.628 4.726-10.011 5.031 9.99z" transform="translate(-945.648 -673.671)" 
-              fill={`url(#star-grad-${fillPercentage})`}
-        />
-    </svg>
-  );
-
-  for (let i = 0; i < 5; i++) {
-    let percentage = 0;
-    if (i < fullStars) {
-      percentage = 100;
-    } else if (i === fullStars) {
-      percentage = partialPercentage;
-    }
-    stars.push(<StarSVG key={i} fillPercentage={percentage} />);
-  }
-  
-  return (
-    <div className="flex space-x-0.5 items-center">
-      {stars}
-      <span className="ml-2 font-bold text-lg" style={{ color: COLOR_TEXT }}>{rating.toFixed(1).replace('.', ',')} / 5</span>
-      <span className="text-sm text-gray-500 hover:text-gray-700 transition"> ({ProductData.reviewCount} avis)</span>
-    </div>
-  );
-};
-
-// Fonction pour rendre le contenu de l'onglet actif
-const renderTabContent = (activeTab, tabsContent) => {
-  const data = tabsContent[activeTab];
-
-  if (!data || !Array.isArray(data.content)) return null;
-
-  if (activeTab === "Utilisation") {
-    return (
-      <div className="space-y-8 text-left">
-        <h3 className="text-2xl font-semibold" style={{ color: COLOR_TEXT }}>{data.title}</h3>
-        {data.content.map((item, index) => (
-          <div key={index} className="p-4 border-l-4 rounded-md" style={{ borderColor: COLOR_PRIMARY, backgroundColor: 'rgba(178,137,95,0.05)' }}>
-            <p className="text-xl font-bold mb-1" style={{ color: COLOR_TEXT }}>{item.title}</p>
-            <p className="text-gray-700">{item.description}</p>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (activeTab === "Composition") {
-      return (
-          <div className="space-y-6 text-left">
-              <h3 className="text-2xl font-semibold" style={{ color: COLOR_TEXT }}>{data.title}</h3>
-              {data.content.map((item, index) => (
-                  <div key={index} className="space-y-1 pb-2 border-b border-gray-100 last:border-b-0">
-                      <p className="text-lg font-bold" style={{ color: COLOR_TEXT }}>{item.name}</p>
-                      <p className="text-gray-600 italic text-sm">{item.role}</p>
-                  </div>
-              ))}
-              <p className="text-sm italic text-gray-500 pt-4 border-t border-gray-200">
-                  **99.4%** du total des ingrédients sont d'origine naturelle. **99.4%** du total des ingrédients sont issus de l'Agriculture Biologique.
-              </p>
-          </div>
-      );
-  }
-
-  // Onglet "Présentation"
-  return (
-    <div className="space-y-5 text-left">
-        <h3 className="text-2xl font-semibold" style={{ color: COLOR_TEXT }}>{data.title}</h3>
-        {data.content.map((text, index) => (
-            <div key={index} className="flex items-start">
-                <span className="mr-3 text-lg" style={{ color: COLOR_PRIMARY }}>✓</span>
-                <p className="text-gray-700 flex-1">{text}</p>
-            </div>
-        ))}
-    </div>
-  );
-};
-
-// Composant pour afficher une étoile pleine (utilisé pour les notes individuelles)
+// Composant pour afficher une étoile remplie ou vide
 const FilledStarSVG = ({ filled }) => (
-    <svg className="w-4 h-4" fill={filled ? COLOR_PRIMARY : 'rgba(178,137,95,0.3)'} viewBox="0 0 31.575 30.402" xmlns="http://www.w3.org/2000/svg">
-        <path d="m977.223 685.241-7.775 7.8 2.031 10.988-9.836-5.168-9.678 5.211 1.7-11-8.012-7.767 10.885-1.628 4.726-10.011 5.031 9.99z" transform="translate(-945.648 -673.671)" />
-    </svg>
+  <svg
+    className={`w-4 h-4 ${filled ? 'text-yellow-400' : 'text-gray-300'}`}
+    fill={filled ? 'currentColor' : 'none'}
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+    />
+  </svg>
 );
 
-// Composant pour une carte d'avis client
-const ReviewCard = ({ review }) => {
-    const stars = Array(5).fill(0).map((_, i) => (
-        <FilledStarSVG key={i} filled={i < review.note} />
-    ));
+// Constants
+const COLOR_TEXT = '#5C4033';
+const COLOR_PRIMARY = '#7B4B3A';
 
-    return (
-        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-md transition duration-300 hover:shadow-lg space-y-3 flex flex-col justify-between h-full">
-            <div>
-                <div className="flex items-center space-x-0.5 mb-2">
-                    {stars}
-                </div>
-                <p className="text-xl font-extrabold mb-1" style={{ color: COLOR_TEXT }}>{review.titre}</p>
-                <p className="text-gray-700 italic text-base line-clamp-4">{review.contenu}</p>
-            </div>
-            <div className="text-xs text-gray-500 pt-3 border-t border-gray-100">
-                <p className="font-semibold">{review.auteur}</p>
-                <p>Posté le {review.date}</p>
-            </div>
-        </div>
-    );
+// Fonction pour rendre le contenu des onglets
+const renderTabContent = (activeTab, tabsContent) => {
+  const tab = tabsContent[activeTab];
+  if (!tab) return <p>Contenu non disponible.</p>;
+  return (
+    <div>
+      <h3 className="text-2xl font-bold mb-4" style={{ color: COLOR_TEXT }}>{tab.title}</h3>
+      <ul className="list-disc list-inside space-y-2 text-gray-700">
+        {tab.content.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Composant pour afficher une carte d'avis
+const ReviewCard = ({ review }) => (
+  <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-md transition duration-300 hover:shadow-lg space-y-3 flex flex-col justify-between h-full">
+    <div>
+      <div className="flex items-center space-x-0.5 mb-2">
+        {Array(5).fill(0).map((_, i) => (
+          <FilledStarSVG key={i} filled={i < review.rating} />
+        ))}
+      </div>
+      <p className="text-xl font-extrabold mb-1" style={{ color: COLOR_TEXT }}>{review.title}</p>
+      <p className="text-gray-700 italic text-base line-clamp-4">{review.content}</p>
+    </div>
+    <div className="text-xs text-gray-500 pt-3 border-t border-gray-100">
+      <p className="font-semibold">{review.author}</p>
+      <p>Posté le {review.date}</p>
+    </div>
+  </div>
+);
+
+// Défauts pour les onglets si non fournis par l'API
+const defaultTabsContent = {
+  "Présentation": {
+    title: "Propriétés & Labels",
+    content: [
+      "Produit 100% naturel",
+      "Certifié bio",
+      "Sans parabènes",
+      "Vegan friendly"
+    ]
+  },
+  "Utilisation": {
+    title: "Conseils d'Application",
+    content: [
+      "Appliquer matin et soir sur peau propre",
+      "Massage circulaire pour une meilleure absorption",
+      "Éviter le contour des yeux"
+    ]
+  },
+  "Composition": {
+    title: "Ingrédients clés & INCI",
+    content: [
+      "Aqua (Eau)",
+      "Glycerin",
+      "Aloe Vera",
+      "Vitamine E"
+    ]
+  }
 };
 
 // --- Composant Principal de la Fiche Technique ---
-const DetailProduit = ({ id }) => {
+const DetailProduit = ({ id: propId }) => {
+  const { id: paramId } = useParams();
+  const id = propId || paramId;
+  
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('Présentation');
   const [product, setProduct] = useState(null);
@@ -189,13 +103,43 @@ const DetailProduit = ({ id }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    if (!product) return;
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    setIsFavorite(favorites.some(item => item.id === product.id));
+  }, [product]);
+
+  const toggleFavorite = () => {
+    if (!product) return;
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    let newFavorites;
+
+    if (isFavorite) {
+      newFavorites = favorites.filter(item => item.id !== product.id);
+      toast.info("Retiré des favoris");
+    } else {
+      newFavorites = [...favorites, {
+        id: product.id,
+        name: dataTitle,
+        price: dataPrice,
+        imageUrl: mainImage,
+        description: product?.description || 'Description non disponible',
+      }];
+      toast.success("Ajouté aux favoris !");
+    }
+
+    localStorage.setItem('favorites', JSON.stringify(newFavorites));
+    setIsFavorite(!isFavorite);
+  };
 
   // Contenu des onglets dynamique basé sur le produit
   const tabsContent = product ? {
-    "Présentation": (product.presentation && Array.isArray(product.presentation)) ? { title: "Propriétés & Labels", content: product.presentation } : ProductData.tabsContent["Présentation"],
-    "Utilisation": (product.utilisation && Array.isArray(product.utilisation)) ? { title: "Conseils d'Application", content: product.utilisation } : ProductData.tabsContent["Utilisation"],
-    "Composition": (product.composition && Array.isArray(product.composition)) ? { title: "Ingrédients clés & INCI", content: product.composition } : ProductData.tabsContent["Composition"],
-  } : ProductData.tabsContent;
+    "Présentation": (product.presentation && Array.isArray(product.presentation)) ? { title: "Propriétés & Labels", content: product.presentation } : defaultTabsContent["Présentation"],
+    "Utilisation": (product.utilisation && Array.isArray(product.utilisation)) ? { title: "Conseils d'Application", content: product.utilisation } : defaultTabsContent["Utilisation"],
+    "Composition": (product.composition && Array.isArray(product.composition)) ? { title: "Ingrédients clés & INCI", content: product.composition } : defaultTabsContent["Composition"],
+  } : defaultTabsContent;
 
   const tabs = Object.keys(tabsContent);
 
@@ -257,8 +201,8 @@ const DetailProduit = ({ id }) => {
         stock: dataStock,
         imageUrl: mainImage,
         quantity: quantity,
-        description: ProductData.shortDescription,
-        rating: ProductData.rating,
+        description: product?.description || 'Description non disponible',
+        rating: product?.rating || 0,
         deliveryTime: 'Maintenant',
         isSelected: true,
       });
@@ -268,10 +212,10 @@ const DetailProduit = ({ id }) => {
     navigate('/panier');
   };
 
-  const dataTitle = product?.nom || product?.name || ProductData.title;
-  const dataPrice = product?.prix || product?.price || ProductData.price;
-  const dataCategorie = product?.id_categorie.nom || product?.Categorie || ProductData.Categorie;
-  const dataStock = product?.stock || product?.Stock || ProductData.Stock;
+  const dataTitle = product?.nom || product?.name || 'Titre non disponible';
+  const dataPrice = product?.prix || product?.price || 0;
+  const dataCategorie = product?.id_categorie?.nom || product?.Categorie || 'Catégorie non disponible';
+  const dataStock = product?.stock || product?.Stock || 0;
   const mainImage = product?.image || product?.photo || 'image/heros.jpg';
   const image_mini1 = product?.image_mini1 || product?.photo || 'image/beauty.jpg';
   const image_mini2 = product?.image_mini2 || product?.photo || 'image/beauty.jpg';
@@ -335,12 +279,12 @@ const DetailProduit = ({ id }) => {
 
           {/* Évaluation */}
           <div className="flex items-center space-x-4 pb-4 border-b border-gray-100">
-            <RatingStars rating={ProductData.rating} />
+            <RatingStars rating={product?.rating || 0} />
           </div>
 
           {/* Description courte */}
           <p className="text-lg text-gray-700 leading-relaxed">
-            {ProductData.shortDescription}
+            {product?.description || 'Description non disponible'}
           </p>
 
           {/* Bloc Prix et CTA */}
@@ -353,7 +297,7 @@ const DetailProduit = ({ id }) => {
                     <span className="text-4xl font-black">Ar</span>
                 </div>
                 <div className="text-sm text-gray-500 text-right">
-                    <p className="font-semibold">{ProductData.volume} ml</p>
+                    <p className="font-semibold">{product?.volume || 'N/A'} ml</p>
                     <p className="text-xs">En stock : <span className="font-bold">{Number(dataStock)} pcs</span></p>
                 </div>
               </div>
@@ -383,6 +327,16 @@ const DetailProduit = ({ id }) => {
                 </div>
 
                 <button
+                    onClick={toggleFavorite}
+                    className={`p-3 rounded-full shadow-md transition duration-300 transform hover:scale-105 border ${isFavorite ? 'bg-red-50 border-red-200 text-red-500' : 'bg-white border-gray-200 text-gray-400 hover:text-red-500'}`}
+                    aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill={isFavorite ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </button>
+
+                <button
                     onClick={addToCart}
                     className={`flex-1 py-4 px-4 text-white font-bold rounded-full shadow-lg transition duration-300 transform hover:scale-[1.01] cursor-pointer`}
                     style={{ backgroundColor: COLOR_PRIMARY }}
@@ -396,12 +350,12 @@ const DetailProduit = ({ id }) => {
                   className="
                     inline-block
                     px-6 py-3
-                    bg-[#8b5e3c]
+                    bg-[#5C4033]
                     text-white
                     font-semibold
                     rounded-lg
                     shadow-md
-                    hover:bg-[#a3734f]
+                    hover:bg-[#7B4B3A]
                     transition-colors
                     duration-300
                     text-center
@@ -447,11 +401,11 @@ const DetailProduit = ({ id }) => {
       <div className="p-6 md:p-12 border-t border-gray-100">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-4" style={{ color: COLOR_TEXT }}>
-            Avis clients ({reviews.length > 0 ? reviews.length : ProductData.reviewCount})
+            Avis clients ({reviews.length > 0 ? reviews.length : 0})
           </h2>
           <div className="flex items-center space-x-4 mb-6">
-            <RatingStars rating={ProductData.rating} />
-            <span className="text-gray-600">Basé sur {reviews.length > 0 ? reviews.length : ProductData.reviewCount} avis</span>
+            <RatingStars rating={product?.rating || 0} />
+            <span className="text-gray-600">Basé sur {reviews.length > 0 ? reviews.length : 0} avis</span>
           </div>
         </div>
 
@@ -463,24 +417,8 @@ const DetailProduit = ({ id }) => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {ProductData.reviews.map((review) => (
-              <div key={review.id} className="bg-white p-5 rounded-xl border border-gray-100 shadow-md transition duration-300 hover:shadow-lg space-y-3 flex flex-col justify-between h-full">
-                <div>
-                  <div className="flex items-center space-x-0.5 mb-2">
-                    {Array(5).fill(0).map((_, i) => (
-                      <FilledStarSVG key={i} filled={i < review.rating} />
-                    ))}
-                  </div>
-                  <p className="text-xl font-extrabold mb-1" style={{ color: COLOR_TEXT }}>{review.title}</p>
-                  <p className="text-gray-700 italic text-base line-clamp-4">{review.content}</p>
-                </div>
-                <div className="text-xs text-gray-500 pt-3 border-t border-gray-100">
-                  <p className="font-semibold">{review.author}</p>
-                  <p>Posté le {review.date}</p>
-                </div>
-              </div>
-            ))}
+          <div className="text-center text-gray-500 py-8">
+            Aucun avis disponible pour ce produit.
           </div>
         )}
       </div>

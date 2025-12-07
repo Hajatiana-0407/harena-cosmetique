@@ -13,7 +13,7 @@ use Stripe\Stripe;
 
 final class PaiementController extends AbstractController
 {
-    #[Route('/paiement', name: 'app_paiement')]
+    #[Route('/api/paiement', name: 'app_paiement')]
     public function index(PaiementRepository $paiementRepository): Response
     {
         $paiements = $paiementRepository->findAll();

@@ -3,277 +3,182 @@
 namespace App\Controller;
 
 use App\Entity\Client;
-use App\Repository\ClientRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
+#[Route('/api/client')]
 final class ClientController extends AbstractController
 {
-
-    /**
-     * Gère la requête de connexion (login) envoyée par le formulaire React.
-     * Récupère l'email et le mot de passe depuis le corps JSON de la requête.
-     * * @param Request $request La requête HTTP entrante.
-     * // Injecter ClientRepository et UserPasswordHasherInterface ici dans un vrai projet
-     */
-    #[Route('/api/login', name: 'api_login', methods: ['POST'])]
-    public function login(
-        Request $request,
-        ClientRepository $clientRepository,
-        UserPasswordHasherInterface $passwordHasher
-    ): JsonResponse {
-        try {
-            $data = json_decode($request->getContent(), true);
-
-            // Sanitize and validate inputs
-            $email = isset($data['email']) ? trim(strip_tags($data['email'])) : null;
-            $password = isset($data['password']) ? $data['password'] : null;
-
-            // Validation des champs
-            if (!$email || !$password) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Email et mot de passe requis'
-                ], Response::HTTP_BAD_REQUEST);
-            }
-
-            // Validation du format email
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Format d\'email invalide'
-                ], Response::HTTP_BAD_REQUEST);
-            }
-
-            // Validate password length
-            if (strlen($password) < 6) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Identifiants invalides'
-                ], Response::HTTP_UNAUTHORIZED);
-            }
-
-            // Recherche du client
-            $client = $clientRepository->findOneBy(['email' => $email]);
-
-            // Use generic error message to prevent user enumeration
-            if (!$client || !$passwordHasher->isPasswordValid($client, $password)) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Identifiants invalides'
-                ], Response::HTTP_UNAUTHORIZED);
-            }
-
-            // Démarrer et configurer la session
-            if (!$request->hasSession()) {
-                $request->getSession();
-            }
-            $session = $request->getSession();
-            $session->start();
-            
-            // Stockage des informations du client en session
-            $session->set('client_id', $client->getId());
-            $session->set('client_email', $client->getEmail());
-            $session->set('client_nom', $client->getNom());
-            $session->set('client_prenom', $client->getPrenom());
-
-            // Retour des informations sanitisées du client connecté
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Connexion réussie',
-                'client' => [
-                    'id' => $client->getId(),
-                    'email' => htmlspecialchars($client->getEmail(), ENT_QUOTES, 'UTF-8'),
-                    'nom' => htmlspecialchars($client->getNom(), ENT_QUOTES, 'UTF-8'),
-                    'prenom' => htmlspecialchars($client->getPrenom(), ENT_QUOTES, 'UTF-8')
-                ]
-            ], Response::HTTP_OK);
-
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'Une erreur est survenue lors de la connexion'
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-        
-        // --- FIN DE LA LOGIQUE DE VÉRIFICATION ET AUTHENTIFICATION ---
-    }
-    
-    // Vous pouvez garder cette route pour l'exemple mais elle n'est pas nécessaire pour le login
-    #[Route('/api/auth/login', name: 'check_auth', methods: ['POST'])]
-    public function checkAuth(Request $request, ClientRepository $clientRepository): JsonResponse
+    #[Route('/{id}', name: 'app_client_get', methods: ['GET'])]
+    public function getClient(int $id, EntityManagerInterface $em): JsonResponse
     {
-        // Démarrer la session si elle n'est pas déjà démarrée
-        if (!$request->hasSession()) {
-            $request->getSession();
-        }
-        
-        $session = $request->getSession();
-        $clientId = $session->get('client_id');
+        $client = $em->getRepository(Client::class)->find($id);
 
-        if (!$clientId) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'Non connecté'
-            ], Response::HTTP_UNAUTHORIZED);
-        }
-
-        $client = $clientRepository->find($clientId);
         if (!$client) {
-            $session->clear();
-            return new JsonResponse([
-                'success' => false,
-                'message' => 'Session invalide'
-            ], Response::HTTP_UNAUTHORIZED);
+            return $this->json(['error' => 'Client non trouvé'], Response::HTTP_NOT_FOUND);
         }
 
-        return new JsonResponse([
-            'success' => true,
-            'client' => [
-                'id' => $client->getId(),
-                'email' => $client->getEmail(),
-                'nom' => $client->getNom(),
-                'prenom' => $client->getPrenom()
-            ]
-        ], Response::HTTP_OK);
-    }
-
-    #[Route('/api/logout', name: 'api_logout', methods: ['POST'])]
-    public function logout(Request $request): JsonResponse
-    {
-        $session = $request->getSession();
-        $session->clear();
-
-        return new JsonResponse([
-            'success' => true,
-            'message' => 'Déconnexion réussie'
+        return $this->json([
+            'id' => $client->getId(),
+            'nom' => $client->getNom(),
+            'prenom' => $client->getPrenom(),
+            'email' => $client->getEmail(),
+            'telephone' => $client->getTelephone(),
+            'adresse' => $client->getAdresse(),
+            'photo' => $client->getPhoto(),
+            'created_at' => $client->getCreatedAt()?->format('Y-m-d H:i:s'),
         ]);
     }
 
-
-    #[Route('/api/register', name: 'api_client_create', methods: ['POST'])]
-    public function createClient(
-        Request $request, 
-        EntityManagerInterface $em, 
-        ClientRepository $clientRepository,
-        UserPasswordHasherInterface $passwordHasher
-    ): Response
+    #[Route('/{id}/update', name: 'app_client_update', methods: ['PUT'])]
+    public function updateClient(int $id, Request $request, EntityManagerInterface $em): JsonResponse
     {
-        try {
-            $content = $request->getContent();
-            if (empty($content)) {
-                throw new \Exception('Aucune donnée reçue');
+        $client = $em->getRepository(Client::class)->find($id);
+
+        if (!$client) {
+            return $this->json(['error' => 'Client non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Handle text fields from form data
+        if ($request->request->has('nom')) {
+            $client->setNom($request->request->get('nom'));
+        }
+        if ($request->request->has('prenom')) {
+            $client->setPrenom($request->request->get('prenom'));
+        }
+        if ($request->request->has('telephone')) {
+            $client->setTelephone($request->request->get('telephone'));
+        }
+        if ($request->request->has('adresse')) {
+            $client->setAdresse($request->request->get('adresse'));
+        }
+
+        // Handle photo upload if provided
+        $file = $request->files->get('photo');
+        if ($file) {
+            // Validate file type
+            $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+                return $this->json(['error' => 'Format de fichier non autorisé. Utilisez JPG, PNG ou WEBP'], Response::HTTP_BAD_REQUEST);
             }
 
-            $data = json_decode($content, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception('Format JSON invalide: ' . json_last_error_msg());
-            }
-    
-            // Sanitize and validate inputs
-            $nom = isset($data['nom']) ? trim(strip_tags($data['nom'])) : '';
-            $prenom = isset($data['prenom']) ? trim(strip_tags($data['prenom'])) : '';
-            $email = isset($data['email']) ? trim(strip_tags($data['email'])) : '';
-            $phone = isset($data['telephone']) ? preg_replace('/[^0-9]/', '', $data['telephone']) : '';
-            $password = isset($data['password']) ? $data['password'] : '';
-            $adresse = isset($data['adresse']) ? trim(strip_tags($data['adresse'])) : '';
-
-            // Validation des champs requis
-            if (!$nom || !$prenom || !$email || !$phone || !$password) {
-                return $this->json([
-                    'success' => false,
-                    'error' => 'Tous les champs requis doivent être remplis'
-                ], Response::HTTP_BAD_REQUEST);
-            }
-    
-            // Vérifier si l'email existe déjà
-            $existingClient = $clientRepository->findOneBy(['email' => $email]);
-            if ($existingClient) {
-                return $this->json([
-                    'success' => false,
-                    'error' => 'Cette adresse email est déjà utilisée.'
-                ], Response::HTTP_CONFLICT);
-            }
-    
-            // Validation du format email
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return $this->json([
-                    'success' => false,
-                    'error' => 'Format d\'email invalide.'
-                ], Response::HTTP_BAD_REQUEST);
+            // Validate file size (max 5MB)
+            if ($file->getSize() > 5 * 1024 * 1024) {
+                return $this->json(['error' => 'Le fichier est trop volumineux (max 5MB)'], Response::HTTP_BAD_REQUEST);
             }
 
-            // Validate password strength
-            if (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
-                return $this->json([
-                    'success' => false,
-                    'error' => 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre'
-                ], Response::HTTP_BAD_REQUEST);
+            $uploadsDirectory = $this->getParameter('kernel.project_dir') . '/public/image/avatars';
+
+            // Create directory if it doesn't exist
+            if (!is_dir($uploadsDirectory)) {
+                mkdir($uploadsDirectory, 0777, true);
             }
 
-            // Validate name fields
-            if (!preg_match('/^[a-zA-ZÀ-ÿ\s\-\']+$/', $nom) || !preg_match('/^[a-zA-ZÀ-ÿ\s\-\']+$/', $prenom)) {
-                return $this->json([
-                    'success' => false,
-                    'error' => 'Les noms ne doivent contenir que des lettres'
-                ], Response::HTTP_BAD_REQUEST);
-            }
-    
-            // Validation du numéro de téléphone
-            if (empty($phone)) {
-                return $this->json([
-                    'success' => false,
-                    'error' => 'Le numéro de téléphone doit contenir au moins un chiffre.'
-                ], Response::HTTP_BAD_REQUEST);
-            }
-    
+            // Generate unique filename
+            $newFilename = uniqid() . '.' . $file->guessExtension();
+
             try {
-                $client = new Client();
-                $client->setNom($nom);
-                $client->setPrenom($prenom);
-                $client->setEmail($email);
-                $client->setTelephone($phone);
-                $client->setAdresse($adresse);
-                $client->setCreatedAt(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s')));
+                $file->move($uploadsDirectory, $newFilename);
 
-                // Hachage du mot de passe avant de le stocker
-                $hashedPassword = $passwordHasher->hashPassword($client, $password);
-                $client->setPassword($hashedPassword);
-        
-                $em->persist($client);
-                $em->flush();
-        
-                return $this->json([
-                    'success' => true,
-                    'message' => 'Client créé avec succès',
-                    'client' => [
-                        'id' => $client->getId(),
-                        'nom' => htmlspecialchars($client->getNom(), ENT_QUOTES, 'UTF-8'),
-                        'prenom' => htmlspecialchars($client->getPrenom(), ENT_QUOTES, 'UTF-8'),
-                        'email' => htmlspecialchars($client->getEmail(), ENT_QUOTES, 'UTF-8'),
-                        'telephone' => $client->getTelephone(),
-                        'adresse' => htmlspecialchars($client->getAdresse(), ENT_QUOTES, 'UTF-8'),
-                        'created_at' => $client->getCreatedAt()->format('Y-m-d H:i:s')
-                    ]
-                ], Response::HTTP_CREATED);
-            } catch (\Exception $e) {
-                return $this->json([
-                    'success' => false,
-                    'error' => 'Erreur lors de la sauvegarde en base de données'
-                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+                // Delete old photo if it's not the default
+                $oldPhoto = $client->getPhoto();
+                if ($oldPhoto && $oldPhoto !== 'default-avatar.jpg') {
+                    $oldPhotoPath = $uploadsDirectory . '/' . $oldPhoto;
+                    if (file_exists($oldPhotoPath)) {
+                        unlink($oldPhotoPath);
+                    }
+                }
+
+                // Update client photo
+                $client->setPhoto($newFilename);
+            } catch (FileException $e) {
+                return $this->json(['error' => 'Erreur lors de l\'upload du fichier'], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
-    
-        } catch (\Exception $e) {
+        }
+
+        $em->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Profil mis à jour avec succès',
+            'client' => [
+                'id' => $client->getId(),
+                'nom' => $client->getNom(),
+                'prenom' => $client->getPrenom(),
+                'email' => $client->getEmail(),
+                'telephone' => $client->getTelephone(),
+                'adresse' => $client->getAdresse(),
+                'photo' => $client->getPhoto(),
+                'photoUrl' => $client->getPhoto() ? '/image/avatars/' . $client->getPhoto() : null,
+            ]
+        ]);
+    }
+
+    #[Route('/{id}/upload-photo', name: 'app_client_upload_photo', methods: ['POST'])]
+    public function uploadPhoto(int $id, Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $client = $em->getRepository(Client::class)->find($id);
+
+        if (!$client) {
+            return $this->json(['error' => 'Client non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        $file = $request->files->get('photo');
+
+        if (!$file) {
+            return $this->json(['error' => 'Aucun fichier fourni'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Validate file type
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+            return $this->json(['error' => 'Format de fichier non autorisé. Utilisez JPG, PNG ou WEBP'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Validate file size (max 5MB)
+        if ($file->getSize() > 5 * 1024 * 1024) {
+            return $this->json(['error' => 'Le fichier est trop volumineux (max 5MB)'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $uploadsDirectory = $this->getParameter('kernel.project_dir') . '/public/image/avatars';
+        
+        // Create directory if it doesn't exist
+        if (!is_dir($uploadsDirectory)) {
+            mkdir($uploadsDirectory, 0777, true);
+        }
+
+        // Generate unique filename
+        $newFilename = uniqid() . '.' . $file->guessExtension();
+
+        try {
+            $file->move($uploadsDirectory, $newFilename);
+            
+            // Delete old photo if it's not the default
+            $oldPhoto = $client->getPhoto();
+            if ($oldPhoto && $oldPhoto !== 'default-avatar.jpg') {
+                $oldPhotoPath = $uploadsDirectory . '/' . $oldPhoto;
+                if (file_exists($oldPhotoPath)) {
+                    unlink($oldPhotoPath);
+                }
+            }
+
+            // Update client photo
+            $client->setPhoto($newFilename);
+            $em->flush();
+
             return $this->json([
-                'success' => false,
-                'error' => 'Une erreur est survenue lors de la création du client.',
-                'details' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+                'success' => true,
+                'message' => 'Photo de profil mise à jour avec succès',
+                'photo' => $newFilename,
+                'photoUrl' => '/image/avatars/' . $newFilename
+            ]);
+        } catch (FileException $e) {
+            return $this->json(['error' => 'Erreur lors de l\'upload du fichier'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

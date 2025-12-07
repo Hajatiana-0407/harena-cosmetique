@@ -14,7 +14,7 @@ final class CommandeController extends AbstractController
      * Retourne la liste des commandes au format JSON.
      * Utilise le Serializer pour gérer les relations et les groupes.
      */
-    #[Route('/commandes', name: 'app_commande', methods: ['GET'])]
+    #[Route('/api/commandes', name: 'app_commande', methods: ['GET'])]
     public function index(CommandeRepository $commandeRepository, SerializerInterface $serializer): Response
     {
         // 1. Récupérer toutes les commandes.

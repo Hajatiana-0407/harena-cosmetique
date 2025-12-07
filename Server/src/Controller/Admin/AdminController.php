@@ -13,6 +13,8 @@ use App\Entity\Temoignage;
 use App\Entity\User;
 use App\Entity\Message;
 use App\Entity\Panier;
+use App\Entity\Contact;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -25,11 +27,61 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class AdminController extends AbstractDashboardController
 {
+    private EntityManagerInterface $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
     #[Route('/', name: 'app_admin_admin_index')]
     public function index(): Response
     {
+        // Statistiques générales
+        $commandeRepo = $this->entityManager->getRepository(Commande::class);
+        $totalCommandes = $commandeRepo->count([]);
+
+        // Ventes du mois
+        $qbVentes = $commandeRepo->createQueryBuilder('c');
+        $qbVentes->select('SUM(c.total)')
+                 ->where('c.created_At >= :start')
+                 ->setParameter('start', new \DateTime('first day of this month'));
+        $ventesMois = $qbVentes->getQuery()->getSingleScalarResult() ?? 0;
+
+        // Nouveaux clients (derniers 30 jours)
+        $clientRepo = $this->entityManager->getRepository(Client::class);
+        $qbClients = $clientRepo->createQueryBuilder('cl');
+        $qbClients->select('COUNT(cl.id)')
+                  ->where('cl.created_At >= :start')
+                  ->setParameter('start', new \DateTime('-30 days'));
+        $nouveauxClients = $qbClients->getQuery()->getSingleScalarResult() ?? 0;
+
+        // Stock total des produits
+        $produitRepo = $this->entityManager->getRepository(Produit::class);
+        $qbStock = $produitRepo->createQueryBuilder('p');
+        $qbStock->select('SUM(p.stock)');
+        $stockTotal = $qbStock->getQuery()->getSingleScalarResult() ?? 0;
+
+        // Nombre de messages de contact
+        $totalMessages = $this->entityManager->getRepository(Contact::class)->count([]);
+
+        // Dernières commandes
+        $dernieresCommandes = $commandeRepo->findBy([], ['created_At' => 'DESC'], 5);
+
+        // Derniers avis
+        $avisRepo = $this->entityManager->getRepository(Avis::class);
+        $derniersAvis = $avisRepo->findBy([], ['date_post' => 'DESC'], 5);
+
         return $this->render('admin/dashboard.html.twig', [
             'dashboard_controller_filepath' => (new \ReflectionClass(static::class))->getFileName(),
+            'stats' => [
+                'total_commandes' => $totalCommandes,
+                'ventes_mois' => $ventesMois,
+                'nouveaux_clients' => $nouveauxClients,
+                'stock_total' => $stockTotal,
+                'total_messages' => $totalMessages,
+                'dernieres_commandes' => $dernieresCommandes,
+                'derniers_avis' => $derniersAvis,
+            ]
         ]);
     }
 

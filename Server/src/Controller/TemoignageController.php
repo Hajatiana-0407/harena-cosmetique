@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class TemoignageController extends AbstractController
 {
-    #[Route('/temoignage', name: 'app_temoignages', methods: ['GET'])]
+    #[Route('/api/temoignage', name: 'app_temoignages', methods: ['GET'])]
     // 💡 La dépendance SerializerInterface n'est plus requise
     public function index(TemoignageRepository $temoignageRepository): Response 
     {

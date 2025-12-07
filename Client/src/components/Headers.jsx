@@ -8,10 +8,14 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
+  const [client, setClient] = useState(null);
+
   useEffect(() => {
     const checkAuth = () => {
-      const client = localStorage.getItem('client');
-      setIsLoggedIn(!!client);
+      const clientData = sessionStorage.getItem('client');
+      const parsedClient = clientData ? JSON.parse(clientData) : null;
+      setIsLoggedIn(!!parsedClient);
+      setClient(parsedClient);
     };
 
     checkAuth();
@@ -86,9 +90,11 @@ export default function Header() {
           {/* Icônes */}
           {isLoggedIn ? (
             <Link to="/compte" className="text-[#6b4226] hover:text-[#8b5e3c] transition">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
+              <img
+                src="https://127.0.0.1:8000/image/beauty.jpg"
+                alt="Photo de profil"
+                className="w-8 h-8 rounded-full object-cover border-2 border-[#6b4226]"
+              />
             </Link>
           ) : (
             <Link to="/login" className="text-[#6b4226] hover:text-[#8b5e3c] transition">

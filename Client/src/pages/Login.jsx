@@ -70,8 +70,8 @@ const LoginPage = () => {
 
       if (data?.success) {
         toast.success("Connexion réussie");
-        // Use sessionStorage instead of localStorage for better security
-        sessionStorage.setItem("client", JSON.stringify(data.client));
+        // Store client data in localStorage
+        localStorage.setItem("client", JSON.stringify(data.client));
         window.dispatchEvent(new Event("authChange"));
         navigate("/");
       } else {

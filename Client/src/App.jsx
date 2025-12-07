@@ -15,6 +15,7 @@ const PanierComponent = React.lazy(() => import('./pages/Panier'));
 const Catalogue = React.lazy(() => import('./pages/Catalogue'));
 const LoginPage = React.lazy(() => import('./pages/Login'));
 const SignInPage = React.lazy(() => import('./pages/Signin'));
+const FavorisPage = React.lazy(() => import('./pages/Favoris'));
 
 // Nouvelles pages
 const Parrainer = React.lazy(() => import('./pages/Parrainer'));
@@ -151,7 +152,7 @@ function AppContent() {
           path="/produit/:id"
           element={
             <Layout>
-              <Produit />
+              <DetailProduit />
             </Layout>
           }
         />
@@ -204,6 +205,14 @@ function AppContent() {
           element={
             <Layout>
               <Faq />
+            </Layout>
+          }
+        />
+        <Route
+          path="/favoris"
+          element={
+            <Layout>
+              <FavorisPage />
             </Layout>
           }
         />

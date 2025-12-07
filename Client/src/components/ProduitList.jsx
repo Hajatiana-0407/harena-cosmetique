@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Leaf, Eye, ShoppingCart } from "lucide-react";
 import api from "../API/url";
 
 export default function ProductList() {
@@ -29,7 +30,7 @@ export default function ProductList() {
       {error && (
         <p className="text-red-600 text-sm mb-4">Erreur de chargement des catégories: {typeof error === 'object' ? JSON.stringify(error) : error}</p>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-stone-900 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-stone-900 w-full">
         {loading ? (
           <div className="col-span-full text-stone-700 text-center py-8">Chargement des catégories...</div>
         ) : categories.length === 0 ? (
@@ -44,32 +45,37 @@ export default function ProductList() {
             return (
               <div
                 key={cat.id}
-                className="rounded-xl shadow-lg p-6 flex flex-col items-start justify-end h-80 relative overflow-hidden transition-transform hover:scale-105"
+                className="group relative rounded-3xl shadow-xl p-8 flex flex-col items-start justify-end h-96 overflow-hidden transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:-translate-y-2 bg-gradient-to-br from-stone-100 to-stone-200"
                 style={{
-                  backgroundImage: "url(/image/beauty.jpg)",
+                  backgroundImage: "linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1)), url(/image/beauty.jpg)",
                   backgroundPosition: "center",
                   backgroundSize: "cover"
                 }}
               >
-                {/* Overlay pour améliorer la lisibilité */}
-                <div className="absolute inset-0 bg-opacity-40 transition-opacity hover:bg-opacity-30"></div>
-                
-                {/* Contenu */}
-                <div className="relative z-10 text-white">
-                  <h3 className="text-3xl font-bold text-left mb-2 drop-shadow-lg">{name}</h3>
-                  <div className="text-white mb-4 text-lg opacity-90">{description}</div>
-                  <div className="flex w-full gap-2">
-                    <a 
-                      href={`/catalogue?category=${cat.id}`} 
-                      className="flex-1 py-2 px-4 text-center bg-white text-stone-900 rounded font-bold cursor-pointer hover:bg-stone-200 transition-colors"
+                {/* Overlay avec gradient moderne */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-all duration-500 group-hover:from-black/80 group-hover:via-black/30"></div>
+
+                {/* Icône décorative */}
+                <div className="absolute top-4 right-4 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Leaf className="text-white w-6 h-6" />
+                </div>
+
+                {/* Contenu avec typographie moderne */}
+                <div className="relative z-10 text-white w-full">
+                  <h3 className="text-4xl font-black text-left mb-3 drop-shadow-2xl group-hover:text-yellow-200 transition-colors duration-300">{name}</h3>
+                  <div className="text-white mb-6 text-lg opacity-90 leading-relaxed drop-shadow-lg">{description}</div>
+                  <div className="flex w-full gap-3">
+                    <a
+                      href={`/catalogue?category=${cat.id}`}
+                      className="flex-1 py-3 px-6 text-center bg-gradient-to-r from-white to-gray-100 text-stone-900 rounded-full font-bold cursor-pointer hover:from-gray-100 hover:to-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
-                      Voir produits
+                      👁️ Voir produits
                     </a>
-                    <a 
-                      href="/panier" 
-                      className="flex-1 py-2 px-4 text-center border-2 border-white text-white rounded font-bold cursor-pointer hover:bg-white hover:text-stone-900 transition-colors"
+                    <a
+                      href="/panier"
+                      className="flex-1 py-3 px-6 text-center border-2 border-white text-white rounded-full font-bold cursor-pointer hover:bg-white hover:text-stone-900 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
-                      Acheter
+                      <ShoppingCart className="inline w-4 h-4 mr-1" /> Acheter
                     </a>
                   </div>
                 </div>

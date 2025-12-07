@@ -32,8 +32,7 @@
                         <div>
                             <h5 class="card-title font-weight-bold">Total Commandes</h5>
                             <p class="card-text display-4 mb-0">
-                                {# TODO: Add dynamic stats #}
-                                0
+                                {{ stats.total_commandes }}
                             </p>
                         </div>
                         <div class="stat-icon">
@@ -50,7 +49,7 @@
                         <div>
                             <h5 class="card-title font-weight-bold">Ventes du mois</h5>
                             <p class="card-text display-4 mb-0">
-                                0 Ar
+                                {{ stats.ventes_mois|number_format(0, ',', ' ') }} Ar
                             </p>
                         </div>
                         <div class="stat-icon">
@@ -65,9 +64,9 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h5 class="card-title font-weight-bold">Total Clients</h5>
+                            <h5 class="card-title font-weight-bold">Nouveaux Clients</h5>
                             <p class="card-text display-4 mb-0">
-                                0
+                                {{ stats.nouveaux_clients }}
                             </p>
                         </div>
                         <div class="stat-icon">
@@ -82,9 +81,9 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h5 class="card-title font-weight-bold">Total Produits</h5>
+                            <h5 class="card-title font-weight-bold">Stock Total</h5>
                             <p class="card-text display-4 mb-0">
-                                0
+                                {{ stats.stock_total }}
                             </p>
                         </div>
                         <div class="stat-icon">
@@ -115,9 +114,18 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for commande in stats.dernieres_commandes %}
+                                <tr>
+                                    <td>{{ commande.id }}</td>
+                                    <td>{{ commande.idClient ? commande.idClient.nom ~ ' ' ~ commande.idClient.prenom : 'N/A' }}</td>
+                                    <td>{{ commande.total|number_format(0, ',', ' ') }} Ar</td>
+                                    <td>{{ commande.statut }}</td>
+                                </tr>
+                                {% else %}
                                 <tr>
                                     <td colspan="4" class="text-center">Aucune commande récente</td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -141,9 +149,18 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for avis in stats.derniers_avis %}
+                                <tr>
+                                    <td>{{ avis.idClient ? avis.idClient.nom ~ ' ' ~ avis.idClient.prenom : 'N/A' }}</td>
+                                    <td>{{ avis.produit|length > 0 ? avis.produit[0].nom : 'N/A' }}</td>
+                                    <td>{{ avis.etoiles }}/5</td>
+                                    <td>{{ avis.createdAt ? avis.createdAt.format('d/m/Y') : 'N/A' }}</td>
+                                </tr>
+                                {% else %}
                                 <tr>
                                     <td colspan="4" class="text-center">Aucun avis récent</td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>

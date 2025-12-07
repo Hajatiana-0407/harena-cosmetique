@@ -40,17 +40,18 @@ class ProduitCrudController extends AbstractCrudController
         return [
             IdField::new('id')->hideOnForm(),
             TextField::new('nom', 'Nom du produit'),
-            TextEditorField::new('definition', 'Description'),
-            TextEditorField::new('utilisation', 'Mode d\'utilisation'),
-            ArrayField::new('compositions', 'Compositions'),
-            TextEditorField::new('presentation', 'Présentation'),
+            TextEditorField::new('definition', 'Description')->hideOnIndex(),
+            TextEditorField::new('utilisation', 'Mode d\'utilisation')->hideOnIndex(),
+            ArrayField::new('compositions', 'Compositions')->hideOnIndex(),
+            TextEditorField::new('presentation', 'Présentation')->hideOnIndex(),
             MoneyField::new('prix', 'Prix')
                 ->setCurrency('MGA')
                 ->setStoredAsCents(false),
             IntegerField::new('stock', 'Stock'),
             AssociationField::new('id_categorie', 'Catégorie'),
             AssociationField::new('avis', 'Avis')
-                ->hideOnForm(),
+                ->hideOnForm()
+                ->hideOnIndex(),
             ImageField::new('image', 'Image principale')
                 ->setBasePath('/image')
                 ->setUploadDir('public/image')
@@ -60,17 +61,20 @@ class ProduitCrudController extends AbstractCrudController
                 ->setBasePath('/image')
                 ->setUploadDir('public/image')
                 ->setUploadedFileNamePattern('[randomhash].[extension]')
-                ->setRequired(false),
+                ->setRequired(false)
+                ->hideOnIndex(),
             ImageField::new('image_mini2', 'Image miniature 2')
                 ->setBasePath('/image')
                 ->setUploadDir('public/image')
                 ->setUploadedFileNamePattern('[randomhash].[extension]')
-                ->setRequired(false),
+                ->setRequired(false)
+                ->hideOnIndex(),
             ImageField::new('image_mini3', 'Image miniature 3')
                 ->setBasePath('/image')
                 ->setUploadDir('public/image')
                 ->setUploadedFileNamePattern('[randomhash].[extension]')
-                ->setRequired(false),
+                ->setRequired(false)
+                ->hideOnIndex(),
         ];
     }
     

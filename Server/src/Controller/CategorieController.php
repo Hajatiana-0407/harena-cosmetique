@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class CategorieController extends AbstractController
 {
-    #[Route('/categorie', name: 'app_categorie')]
+    #[Route('/api/categorie', name: 'app_categorie')]
     public function index(CategorieRepository $categorieRepository): Response
     {
         // Récupère toutes les catégories (qui chargeront leurs produits via le sérialiseur)

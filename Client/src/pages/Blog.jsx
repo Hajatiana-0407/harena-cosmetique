@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Filter } from "lucide-react";
 import Pagination from "../components/Pagination";
 import api from "../API/url";
 
@@ -68,13 +69,29 @@ const BlogPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAuthor, setSelectedAuthor] = useState('');
+  const [authors, setAuthors] = useState([]);
+  const [filterTitre, setFilterTitre] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [filterStars, setFilterStars] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
     const fetchArticles = async () => {
       try {
         setLoading(true);
-        const endpoint = searchTerm ? `/articles?q=${encodeURIComponent(searchTerm)}` : '/articles';
+        let endpoint = 'articles';
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('q', searchTerm);
+        if (selectedAuthor) params.append('auteur', selectedAuthor);
+        if (filterTitre) params.append('titre', filterTitre);
+        if (filterDateFrom) params.append('date_from', filterDateFrom);
+        if (filterDateTo) params.append('date_to', filterDateTo);
+        if (filterStars) params.append('stars', filterStars);
+        if (params.toString()) endpoint += '?' + params.toString();
+
         const { data } = await api.get(endpoint);
         if (!isMounted) return;
         const list = Array.isArray(data) ? data : [];
@@ -82,13 +99,18 @@ const BlogPage = () => {
         const normalized = list.map((a) => ({
           id: a.id,
           titre: a.titre || 'Sans titre',
+          auteur: a.auteur || 'Auteur inconnu',
           note: 5, // Note par défaut
           description: a.contenu || 'Pas de description',
           temps: a.created_At ? new Date(a.created_At).toLocaleDateString('fr-FR') : 'Date inconnue',
           image: a.image || '/image/beauty.jpg',
         }));
         setArticles(normalized);
-    
+
+        // Extract unique authors
+        const uniqueAuthors = [...new Set(list.map(a => a.auteur).filter(Boolean))];
+        setAuthors(uniqueAuthors);
+
       } catch (err) {
         setError(err?.response?.data || err.message);
       } finally {
@@ -100,12 +122,11 @@ const BlogPage = () => {
         fetchArticles();
     }, 500);
 
-    return () => { 
-        isMounted = false; 
+    return () => {
+        isMounted = false;
         clearTimeout(timeoutId);
     };
-  }, [searchTerm]);
-
+  }, [searchTerm, selectedAuthor]);
 
   
   // Couleurs de votre thème pour le style
@@ -119,36 +140,125 @@ const BlogPage = () => {
       
       {/* Barre de recherche et En-tête (Animation d'apparition globale) */}
       <ScrollFadeIn direction='up' delay={0} threshold={0.1}>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <span className={`font-bold text-lg ${primaryColor}`}>BLOG</span>
-            <button 
-                onClick={() => { setSearchTerm(''); }}
-                className={`p-2 border-2 cursor-pointer border-[#8b5e3c] hover:bg-[#8b5e3c]/10 rounded-full`}
-                title="Réinitialiser la recherche"
-            > 
-                <svg
-                    className="w-5 h-5 text-[#8b5e3c]"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path d="M4 6h16M7 12h10M10 18h4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+        <div className="flex flex-col gap-6 mb-8">
+          {/* Header avec titre et bouton toggle filtres */}
+          <div className="flex items-center justify-between">
+            <span className={`font-bold text-2xl ${primaryColor}`}>BLOG</span>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full ${accentButton} text-white font-medium transition-all duration-300 hover:shadow-lg`}
+            >
+              <Filter className="w-4 h-4" />
+              {showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
             </button>
           </div>
-          <div className="flex items-center border border-[#d4bfa4] rounded-full px-4 py-2 w-full md:w-1/3 bg-white shadow-sm">
+
+          {/* Barre de recherche principale */}
+          <div className="flex items-center border border-[#d4bfa4] rounded-full px-6 py-3 w-full bg-white shadow-lg">
             <input
               type="text"
-              placeholder="RECHERCHER UN ARTICLE"
-              className={`flex-grow outline-none text-sm bg-transparent ${primaryColor} placeholder:text-stone-400`}
+              placeholder="RECHERCHER UN ARTICLE..."
+              className={`flex-grow outline-none text-base bg-transparent ${primaryColor} placeholder:text-stone-400`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button className="btn btn-ghost btn-circle">
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${lightAccent}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /> </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${lightAccent}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </button>
+          </div>
+
+          {/* Panel des filtres avancés (collapsible) */}
+          <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showFilters ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div className="bg-white rounded-2xl shadow-xl border border-stone-100 p-6">
+              <h3 className={`font-semibold text-lg mb-4 ${primaryColor}`}>Filtres avancés</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                {/* Filtre Auteur */}
+                <div className="space-y-2">
+                  <label className={`text-sm font-medium ${primaryColor}`}>Auteur</label>
+                  <select
+                    value={selectedAuthor}
+                    onChange={(e) => setSelectedAuthor(e.target.value)}
+                    className={`w-full p-3 border border-[#d4bfa4] rounded-xl bg-stone-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-[#8b5e3c]/20 focus:border-[#8b5e3c] transition-all`}
+                  >
+                    <option value="">Tous les auteurs</option>
+                    {authors.map((author) => (
+                      <option key={author} value={author}>{author}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Filtre Titre */}
+                <div className="space-y-2">
+                  <label className={`text-sm font-medium ${primaryColor}`}>Titre</label>
+                  <input
+                    type="text"
+                    placeholder="Rechercher par titre..."
+                    className={`w-full p-3 border border-[#d4bfa4] rounded-xl bg-stone-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-[#8b5e3c]/20 focus:border-[#8b5e3c] transition-all`}
+                    value={filterTitre}
+                    onChange={(e) => setFilterTitre(e.target.value)}
+                  />
+                </div>
+
+                {/* Filtre Date de début */}
+                <div className="space-y-2">
+                  <label className={`text-sm font-medium ${primaryColor}`}>Date de début</label>
+                  <input
+                    type="date"
+                    className={`w-full p-3 border border-[#d4bfa4] rounded-xl bg-stone-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-[#8b5e3c]/20 focus:border-[#8b5e3c] transition-all`}
+                    value={filterDateFrom}
+                    onChange={(e) => setFilterDateFrom(e.target.value)}
+                  />
+                </div>
+
+                {/* Filtre Date de fin */}
+                <div className="space-y-2">
+                  <label className={`text-sm font-medium ${primaryColor}`}>Date de fin</label>
+                  <input
+                    type="date"
+                    className={`w-full p-3 border border-[#d4bfa4] rounded-xl bg-stone-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-[#8b5e3c]/20 focus:border-[#8b5e3c] transition-all`}
+                    value={filterDateTo}
+                    onChange={(e) => setFilterDateTo(e.target.value)}
+                  />
+                </div>
+
+                {/* Filtre Étoiles */}
+                <div className="space-y-2">
+                  <label className={`text-sm font-medium ${primaryColor}`}>Évaluation</label>
+                  <select
+                    value={filterStars}
+                    onChange={(e) => setFilterStars(e.target.value)}
+                    className={`w-full p-3 border border-[#d4bfa4] rounded-xl bg-stone-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-[#8b5e3c]/20 focus:border-[#8b5e3c] transition-all`}
+                  >
+                    <option value="">Toutes les étoiles</option>
+                    <option value="5">⭐⭐⭐⭐⭐ 5 étoiles</option>
+                    <option value="4">⭐⭐⭐⭐ 4 étoiles</option>
+                    <option value="3">⭐⭐⭐ 3 étoiles</option>
+                    <option value="2">⭐⭐ 2 étoiles</option>
+                    <option value="1">⭐ 1 étoile</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Bouton de réinitialisation */}
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedAuthor('');
+                    setFilterTitre('');
+                    setFilterDateFrom('');
+                    setFilterDateTo('');
+                    setFilterStars('');
+                  }}
+                  className={`flex items-center gap-2 px-6 py-2 rounded-full border-2 border-[#8b5e3c] text-[#8b5e3c] hover:bg-[#8b5e3c] hover:text-white transition-all duration-300 font-medium`}
+                >
+                  <Filter className="w-4 h-4" />
+                  Réinitialiser les filtres
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </ScrollFadeIn>

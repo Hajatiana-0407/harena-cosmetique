@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ORM\Entity(repositoryClass: AvisRepository::class)]
 class Avis
@@ -74,6 +75,28 @@ class Avis
     public function setDatePost(\DateTimeImmutable $date_post): static
     {
         $this->date_post = $date_post;
+
+        return $this;
+    }
+
+    /**
+     * Backwards-compatible accessor for payloads using `created_At`.
+     * The API/clients sometimes send `created_At` instead of `date_post`.
+     */
+    #[SerializedName('created_At')]
+    #[Groups(['avis:read'])]
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->date_post;
+    }
+
+    /**
+     * Backwards-compatible mutator for payloads using `created_At`.
+     */
+    #[SerializedName('created_At')]
+    public function setCreatedAt(\DateTimeImmutable $created_At): static
+    {
+        $this->date_post = $created_At;
 
         return $this;
     }
