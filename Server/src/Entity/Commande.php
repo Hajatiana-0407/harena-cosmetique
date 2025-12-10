@@ -37,6 +37,14 @@ class Commande
     #[Groups('commande:read')]
     private array $items = [];
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups('commande:read')]
+    private ?string $promo_code = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups('commande:read')]
+    private ?float $montant_remise = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -74,6 +82,30 @@ class Commande
     public function setTotal(float $total): static
     {
         $this->total = $total;
+
+        return $this;
+    }
+
+    public function getPromoCode(): ?string
+    {
+        return $this->promo_code;
+    }
+    
+    public function setPromoCode(?string $promo_code): static
+    {
+        $this->promo_code = $promo_code;
+
+        return $this;
+    }
+
+    public function getMontantRemise(): ?float
+    {
+        return $this->montant_remise;
+    }
+
+    public function setMontantRemise(?float $montant_remise): static
+    {
+        $this->montant_remise = $montant_remise;
 
         return $this;
     }

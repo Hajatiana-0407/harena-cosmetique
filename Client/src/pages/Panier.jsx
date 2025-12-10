@@ -8,12 +8,7 @@ import {
     FiStar,
     FiTruck
 } from 'react-icons/fi';
-
-// --- Codes Promo Mockés ---
-const PROMO_CODES = {
-    'REDUC10': 0.10, // 10% de réduction
-    'FREE99': 99.00, // 99 Ar de réduction fixe (pour annuler les frais de livraison)
-};
+import RequestApi from '../API/RequestApi';
 
 const formatCurrency = (amount) => `${Math.max(0, amount).toLocaleString('fr-MG', { minimumFractionDigits: 0 })} Ar`;
 
@@ -169,14 +164,18 @@ const OrderSummary = ({ summary, onCheckout, selectedItems, totalAmount, onApply
 
 // --- Composant Principal du Panier (CORRIGÉ) ---
 export const PanierComponent = ({
-    onCheckout = (items, total) => {
+    onCheckout
+}) => {
+    const navigate = useNavigate();
+    const { validatePromoCode } = RequestApi();
+
+    const handleCheckout = (items, total) => {
         // Redirect to payment page with cart data
         localStorage.setItem('checkoutItems', JSON.stringify(items));
         localStorage.setItem('checkoutTotal', total);
         navigate('/paiement');
-    }
-}) => {
-    const navigate = useNavigate();
+    };
+
     const [items, setItems] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterActive, setFilterActive] = useState(false);
@@ -220,13 +219,13 @@ export const PanierComponent = ({
     });
 
     const selectedItems = items.filter(item => item.isSelected);
-    
+
     // Calcul dynamique du total (useMemo sans effet secondaire)
     const { subTotal, deliveryFee, taxes, totalAmount, cartSummary } = useMemo(() => {
         const currentSubTotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const currentDeliveryFee = selectedItems.length > 0 ? 99 : 0; 
-        const currentTaxes = currentSubTotal > 0 ? currentSubTotal * 0.02 : 0; 
-        
+        const currentDeliveryFee = selectedItems.length > 0 ? 99 : 0;
+        const currentTaxes = currentSubTotal > 0 ? currentSubTotal * 0.02 : 0;
+
         // Le calcul applique directement l'état `discount` qui est contrôlé par `handleApplyPromo`
         let finalDeliveryFee = currentDeliveryFee;
         let effectiveDiscount = discount;
@@ -237,7 +236,7 @@ export const PanierComponent = ({
         }
 
         let currentTotal = currentSubTotal + finalDeliveryFee + currentTaxes - effectiveDiscount;
-        currentTotal = Math.max(0, currentTotal); 
+        currentTotal = Math.max(0, currentTotal);
 
         const summary = {
             'Sous-total': currentSubTotal,
@@ -246,67 +245,71 @@ export const PanierComponent = ({
             'Total': currentTotal,
         };
 
-        return { 
-            subTotal: currentSubTotal, 
-            deliveryFee: finalDeliveryFee, 
-            taxes: currentTaxes, 
-            totalAmount: currentTotal, 
-            cartSummary: summary 
+        return {
+            subTotal: currentSubTotal,
+            deliveryFee: finalDeliveryFee,
+            taxes: currentTaxes,
+            totalAmount: currentTotal,
+            cartSummary: summary
         };
-    }, [selectedItems, discount, promoInput]); 
+    }, [selectedItems, discount, promoInput]);
 
     // Logique de validation et d'application du code promo (HORS useMemo)
-    const handleApplyPromo = () => {
+    const handleApplyPromo = async () => {
         setPromoError(null);
         const code = promoInput.toUpperCase();
-        const promoValue = PROMO_CODES[code];
-        
-        let newDiscount = 0;
 
-        if (promoValue) {
-            if (code === 'REDUC10') {
-                 newDiscount = Math.round(subTotal * promoValue);
-            } else if (code === 'FREE99') {
-                 newDiscount = deliveryFee; // Réduction égale aux frais de livraison
-            } else {
-                 newDiscount = 0;
+        // First, try to validate via API
+        const apiResponse = await validatePromoCode(code);
+
+        if (apiResponse.success) {
+            let newDiscount = 0;
+            const { type, valeur } = apiResponse;
+
+            if (type === 'pourcentage') {
+                newDiscount = Math.round(subTotal * (valeur / 100));
+            } else if (type === 'montant_fixe') {
+                newDiscount = valeur;
             }
-            
+
             if (newDiscount > 0) {
-                 setDiscount(newDiscount);
-                 setPromoInput(code); // S'assurer que le code est bien enregistré
-                 return;
+                setDiscount(newDiscount);
+                setPromoInput(code);
+                return;
             }
         }
-        
-        // Si le code n'est pas reconnu ou que la réduction est de 0
+
+        // Fallback to local codes if API fails or code not found
+        // Note: PROMO_CODES removed as codes are now dynamic from API
+
+        // If neither API nor local codes work
         setDiscount(0);
-        setPromoError(`Code promo '${code}' non valide ou aucun article sélectionné.`);
+        setPromoError(apiResponse.message || `Code promo '${code}' non valide ou aucun article sélectionné.`);
     };
     // --- FIN LOGIQUE DU PANIER ---
 
     return (
         <div className="min-h-screen bg-[#fdf6ec] text-stone-800 p-4 sm:p-8 lg:p-12">
             <div className="max-w-7xl mx-auto">
-                
+
                 <div className="flex flex-col lg:flex-row lg:space-x-8">
-                    
+
                     <div className="flex-grow lg:w-3/5 bg-white p-4 sm:p-6 rounded-lg shadow-lg shadow-stone-200">
-                        
+
                         {/* Barre de recherche et filtres */}
                         <div className="pb-4 border-b border-stone-200 mb-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-bold text-[#6b4226]">PANIER ({filteredItems.length})</h2>
                                 <div className="flex items-center space-x-3 text-stone-500">
-                                    <FiFilter 
+                                    <FiFilter
                                         className={`w-5 h-5 cursor-pointer transition-colors ${filterActive ? 'text-blue-500' : 'text-[#6b4226]'}`}
                                         onClick={() => setFilterActive(!filterActive)}
                                         title={filterActive ? "Désactiver le filtre" : "Activer le filtre"}
-                                    /> 
+                                    />
                                     <div className="relative">
-                                        <input 
-                                            type="text" 
-                                            placeholder="RECHERCHER UNE COMMANDE" 
+                                        <input
+                                            type="text"
+                                            placeholder="RECHERCHER UNE COMMANDE"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                             className="pl-3 pr-10 py-1.5 text-xs border border-[#d4bfa4] rounded-lg focus:ring-[#8b5e3c] focus:border-[#8b5e3c] w-full md:w-64 bg-[#fffaf5] text-[#6b4226]"
@@ -318,7 +321,7 @@ export const PanierComponent = ({
                                 </div>
                             </div>
 
-                            <div className="flex justify-between items-center mt-4"> 
+                            <div className="flex justify-between items-center mt-4">
                                 <p className="text-sm font-medium text-[#6b4226]">
                                     {filterActive ? `Filtré par Appréciations > 3` : `Plus récents`}
                                 </p>
@@ -378,9 +381,9 @@ export const PanierComponent = ({
 
                     <div className="lg:w-2/5 mt-8 lg:mt-0 sticky top-4 self-start">
                         {/* Composant de Résumé de la commande */}
-                        <OrderSummary 
-                            summary={cartSummary} 
-                            onCheckout={onCheckout}
+                        <OrderSummary
+                            summary={cartSummary}
+                            onCheckout={handleCheckout}
                             selectedItems={selectedItems}
                             totalAmount={totalAmount}
                             onApplyPromo={handleApplyPromo}

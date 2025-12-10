@@ -12,6 +12,7 @@ use App\Entity\Paiement;
 use App\Entity\Contact;
 use App\Entity\Temoignage;
 use App\Entity\Article;
+use App\Entity\Promo;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
@@ -167,6 +168,26 @@ class AppFixtures extends Fixture
                 $faker->dateTimeBetween('-2 months', 'now')
             ));
             $manager->persist($t);
+        }
+
+        /* ================= PROMOS ================= */
+        $promoSamples = [
+            ['4050', '10% de réduction sur les produits', 'pourcentage', 10.00, true, null],
+            ['REDUC10', '10% de réduction sur votre commande', 'pourcentage', 10.00, true, null],
+            ['FREE99', 'Frais de livraison offerts', 'montant_fixe', 99.00, true, null],
+        ];
+
+        foreach ($promoSamples as $sample) {
+            $promo = new Promo();
+            $promo->setCode($sample[0]);
+            $promo->setDescription($sample[1]);
+            $promo->setType($sample[2]);
+            $promo->setValeur($sample[3]);
+            $promo->setActif($sample[4]);
+            if ($sample[5]) {
+                $promo->setDateExpiration(DateTimeImmutable::createFromMutable($sample[5]));
+            }
+            $manager->persist($promo);
         }
 
         /* ================= ARTICLES ================= */

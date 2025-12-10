@@ -156,14 +156,14 @@ function AppContent() {
             </Layout>
           }
         />
-        <Route
+        {/* <Route
           path="/payer"
           element={
             <Layout>
               <PapiPayForm />
             </Layout>
           }
-        />
+        /> */}
         <Route
           path="/success"
           element={
@@ -333,7 +333,6 @@ function AppContent() {
 
         {/* Routes spéciales sans Layout */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/paiement" element={<MvolaPaymentForm />} />
         <Route path="/signup" element={<SignInPage />} />
         <Route path="/error" element={<Error />} />
         <Route path="*" element={<Error />} />
@@ -341,9 +340,9 @@ function AppContent() {
         <Route path="/messenger" element={<MessengerInterface />} />
         <Route path="/detail-blog" element={<DetailBlog />} />
         <Route path="/test" element={<PaiementList />} />
+        <Route path="/paiement" element={<PapiPayForm />} />
 
-        {/* Route fallback (URL inexistantes) */}
-        <Route path="/paie" element={<PaiementList />} />
+
       </Routes>
     </Suspense>
   );

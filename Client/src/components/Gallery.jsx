@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Heart, Eye, Grid, List } from "lucide-react"; // icônes
+import { Heart, Eye, Grid, List, Search, ChevronLeft, ChevronRight, Filter, X } from "lucide-react"; // icônes
 import api from "../API/url";
 
 // Carte produit
@@ -132,7 +132,7 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
 
   // Vue grille (par défaut) - Modern design
   return (
-    <div className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-lg h-[480px] flex flex-col justify-between hover:shadow-2xl hover:border-[#5C4033]/30 transition-all duration-500 transform hover:-translate-y-2 hover:rotate-1">
+    <div className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-lg h-[480px] flex flex-col justify-between hover:shadow-2xl hover:border-[#5C4033]/30 transition-all duration-500 transform hover:-translate-y-2 ">
       {/* Icônes favoris et voir - Modern floating buttons */}
       <div className="absolute top-4 right-4 flex gap-2 z-10">
         <button
@@ -219,19 +219,22 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
 // Carrousel
 export default function Gallery() {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState("grid"); // "grid" ou "list"
+  const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
         // Fetch categories
-        const catRes = await api.get('/categories');
+        const catRes = await api.get('/api/categories');
         if (isMounted && Array.isArray(catRes.data)) {
             setCategories(catRes.data);
         }
@@ -262,7 +265,7 @@ export default function Gallery() {
           localStorage.removeItem('searchQuery');
         } else {
           // Load all products normally
-          const { data } = await api.get('/produits');
+          const { data } = await api.get('/api/produits');
           if (!isMounted) return;
           const list = Array.isArray(data) ? data : [];
           const normalized = list.map((p) => ({
@@ -287,12 +290,42 @@ export default function Gallery() {
     return () => { isMounted = false; };
   }, []);
 
-  // Unified filtering logic
+  // Toggle category function
+  const toggleCategory = (catName) => {
+    setSelectedCategories(prev =>
+      prev.includes(catName)
+        ? prev.filter(c => c !== catName)
+        : [...prev, catName]
+    );
+  };
+
+  // Clear all categories
+  const clearCategories = () => {
+    setSelectedCategories([]);
+  };
+
+  // Unified filtering logic for multi-select
   const filteredProducts = products.filter((p) => {
-      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
-      const matchesFilter = filter === "all" || p.category === filter || p.categoryId == filter; // Check both name and ID
-      return matchesSearch && matchesFilter;
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchesFilter = selectedCategories.length === 0 || selectedCategories.includes(p.category);
+    return matchesSearch && matchesFilter;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
 
   return (
     <section className="bg-gray-50 p-10 py-8 pt-20">
@@ -307,46 +340,91 @@ export default function Gallery() {
           </h2>
 
           <div className="flex gap-3 items-center">
-            {/* Boutons de vue */}
-            <div className="flex border rounded">
+            {/* Filter Button */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="p-2 bg-white border border-gray-300 rounded-lg hover:shadow-md transition-shadow duration-200 flex items-center gap-1"
+            >
+              <Filter size={18} />
+              Filtres
+            </button>
+
+            {/* Boutons de vue - Modern */}
+            <div className="flex bg-white border border-gray-300 rounded-lg overflow-hidden shadow-sm">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2 ${viewMode === "grid" ? "bg-[#5C4033] text-white" : "text-[#5C4033]"}`}
+                className={`p-3 transition-colors duration-200 ${
+                  viewMode === "grid" 
+                    ? "bg-[#5C4033] text-white" 
+                    : "text-gray-600 hover:text-[#5C4033] hover:bg-gray-50"
+                }`}
               >
-                <Grid size={18} />
+                <Grid size={20} />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-2 ${viewMode === "list" ? "bg-[#5C4033] text-white" : "text-[#5C4033]"}`}
+                className={`p-3 transition-colors duration-200 ${
+                  viewMode === "list" 
+                    ? "bg-[#5C4033] text-white" 
+                    : "text-gray-600 hover:text-[#5C4033] hover:bg-gray-50"
+                }`}
               >
-                <List size={18} />
+                <List size={20} />
               </button>
             </div>
 
-            <select
-              className="border rounded px-2 py-1 text-[#5C4033]"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            >
-              <option value="all">Toutes catégories</option>
-              {categories.map(cat => (
-                  <option key={cat.id} value={cat.nom}>{cat.nom}</option>
-              ))}
-            </select>
-
-            <input
-              type="text"
-              placeholder="Rechercher un produit..."
-              className="border rounded px-3 py-1 w-64 text-[#5C4033]"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            {/* Modern Search Field */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Rechercher un produit..."
+                className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5C4033] focus:border-transparent outline-none transition-all duration-200 bg-white shadow-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
         </div>
+
+        {/* Filter Panel */}
+        {showFilters && (
+          <div className="mb-6 bg-white border border-gray-200 rounded-lg p-4 shadow-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-[#5C4033]">Filtres par catégorie</h3>
+              <button onClick={() => setShowFilters(false)} className="text-gray-500 hover:text-gray-700">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => toggleCategory(cat.nom)}
+                  className={`px-3 py-2 rounded-lg text-sm transition-colors duration-200 ${
+                    selectedCategories.includes(cat.nom)
+                      ? 'bg-[#5C4033] text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {cat.nom}
+                </button>
+              ))}
+            </div>
+            {selectedCategories.length > 0 && (
+              <button
+                onClick={clearCategories}
+                className="mt-3 text-sm text-red-600 hover:underline"
+              >
+                Effacer les filtres
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="text-left text-stone-800 mb-5 mt-5 pl-5 min-h-[3rem]">
           Découvrez notre gamme complète de produits naturels, conçus pour votre bien-être et celui de la planète.
         </div>
-
 
         {/* Affichage des produits filtrés */}
         <div className="rounded-lg border bg-white p-4 shadow-md">
@@ -356,15 +434,48 @@ export default function Gallery() {
             <div className="text-center py-10 text-gray-500">Aucun produit trouvé</div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map((product) => (
+              {paginatedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} viewMode={viewMode} />
               ))}
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredProducts.map((product) => (
+              {paginatedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} viewMode={viewMode} />
               ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-2">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="p-2 rounded-full bg-white border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md transition-shadow duration-200 flex items-center justify-center"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                    currentPage === page
+                      ? 'bg-[#5C4033] text-white'
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-full bg-white border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md transition-shadow duration-200 flex items-center justify-center"
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
           )}
         </div>

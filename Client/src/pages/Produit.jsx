@@ -6,6 +6,45 @@ import { toast } from 'react-toastify';
 import RequestApi from '../API/RequestApi';
 
 // ====================================================================
+// Pagination Component
+// ====================================================================
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex justify-center mt-8 space-x-2">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        Précédent
+      </button>
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+        <button
+          key={page}
+          onClick={() => onPageChange(page)}
+          className={`px-4 py-2 rounded-md transition-colors ${
+            page === currentPage
+              ? 'bg-orange-500 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          {page}
+        </button>
+      ))}
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        Suivant
+      </button>
+    </div>
+  );
+};
+
+// ====================================================================
 // I. COMPOSANT ProductCard (Présentation seulement)
 // ====================================================================
 const ProductCard = ({ product }) => {
@@ -230,6 +269,11 @@ const ProduitsPage = () => {
   const [maxPrice, setMaxPrice] = useState('');
   const [sortOption, setSortOption] = useState('default');
 
+  // Pagination States
+  const [currentTab, setCurrentTab] = useState('all'); // 'new', 'old', 'all'
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // 3x3 grid
+
   // Fetch Data
   useEffect(() => {
     let mounted = true;
@@ -316,6 +360,32 @@ const ProduitsPage = () => {
     return result;
   }, [products, searchTerm, selectedCategories, minPrice, maxPrice, sortOption]);
 
+  // Tab-based filtering
+  const tabFilteredProducts = useMemo(() => {
+    if (currentTab === 'new') {
+      return [...productINV];
+    } else if (currentTab === 'old') {
+      // Old products: all filtered products except new ones
+      const newProductIds = new Set(productINV.map(p => p.id));
+      return filteredProducts.filter(p => !newProductIds.has(p.id));
+    } else {
+      // All products
+      return [...filteredProducts];
+    }
+  }, [currentTab, filteredProducts, productINV]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(tabFilteredProducts.length / itemsPerPage);
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return tabFilteredProducts.slice(startIndex, startIndex + itemsPerPage);
+  }, [tabFilteredProducts, currentPage, itemsPerPage]);
+
+  // Reset page when tab or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [currentTab, searchTerm, selectedCategories, minPrice, maxPrice, sortOption]);
+
 
   return (
     <div className="mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gray-50 mt-19">
@@ -340,12 +410,48 @@ const ProduitsPage = () => {
 
         {/* ➡️ Contenu Principal */}
         <main className="lg:col-span-3">
-          {/* Section: NOUVEAU PRODUIT */}
-          {productINV.length > 0 && (
+          {/* Tabs for New, Old, All Products */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-white rounded-full p-1 shadow-md border">
+              <button
+                onClick={() => setCurrentTab('new')}
+                className={`px-6 py-2 rounded-full font-medium transition-colors ${
+                  currentTab === 'new'
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                Nouveaux Produits
+              </button>
+              <button
+                onClick={() => setCurrentTab('old')}
+                className={`px-6 py-2 rounded-full font-medium transition-colors ${
+                  currentTab === 'old'
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                Anciens Produits
+              </button>
+              <button
+                onClick={() => setCurrentTab('all')}
+                className={`px-6 py-2 rounded-full font-medium transition-colors ${
+                  currentTab === 'all'
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                Tous les Produits
+              </button>
+            </div>
+          </div>
+
+          {/* Section: NOUVEAU PRODUIT (only show when new tab is selected) */}
+          {currentTab === 'new' && productINV.length > 0 && (
             <>
-              <h2 className="text-xl font-bold tracking-tight text-gray-900 mb-6 border-b pb-2">NOUVEAU PRODUIT</h2>
+              <h2 className="text-xl font-bold tracking-tight text-gray-900 mb-6 border-b pb-2">NOUVEAUX PRODUITS</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                {productINV.map((p, idx) => (
+                {paginatedProducts.map((p, idx) => (
                   <div key={idx} className='rounded-2xl hover:scale-102 hover:shadow-2xl hover:cursor-pointer bg-amber-100 shadow-md border border-gray-100 text-left flex flex-col transition-all duration-300'>
                     <div className='relative'>
                       <div className='absolute top-2 -right-2 bg-yellow-300 rotate-12 p-1 px-3 rounded-md shadow-sm text-xs font-bold animate-pulse'>
@@ -378,43 +484,49 @@ const ProduitsPage = () => {
             </>
           )}
 
+          {/* Section: ANCIENS PRODUITS or TOUS LES PRODUITS */}
+          {(currentTab === 'old' || currentTab === 'all') && (
+            <>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold tracking-tight text-gray-900">
+                  {currentTab === 'old' ? 'ANCIENS PRODUITS' : 'TOUS LES PRODUITS'}
+                </h2>
+                <span className="text-sm text-gray-500">{tabFilteredProducts.length} produits trouvés</span>
+              </div>
+              <hr className="border-stone-500 h-1 mb-6 opacity-20" />
 
-          {/* Section: TOUS LES PRODUITS */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold tracking-tight text-gray-900">TOUS LES PRODUITS</h2>
-            <span className="text-sm text-gray-500">{filteredProducts.length} produits trouvés</span>
-          </div>
-          <hr className="border-stone-500 h-1 mb-6 opacity-20" />
-
-          {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20">
-              <p className="text-gray-500 text-lg">Aucun produit ne correspond à vos critères.</p>
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategories([]);
-                  setMinPrice('');
-                  setMaxPrice('');
-                }}
-                className="mt-4 text-orange-600 hover:text-orange-800 font-medium"
-              >
-                Réinitialiser les filtres
-              </button>
-            </div>
+              {paginatedProducts.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {paginatedProducts.map(product => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <p className="text-gray-500 text-lg">Aucun produit ne correspond à vos critères.</p>
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedCategories([]);
+                      setMinPrice('');
+                      setMaxPrice('');
+                    }}
+                    className="mt-4 text-orange-600 hover:text-orange-800 font-medium"
+                  >
+                    Réinitialiser les filtres
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
-          {filteredProducts.length > 0 && (
-            <div className="mt-12 text-center">
-              <button className="bg-gray-100 text-gray-800 py-2 px-6 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
-                Charger plus de produits
-              </button>
-            </div>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           )}
 
           <hr className="my-10 border-gray-300" />

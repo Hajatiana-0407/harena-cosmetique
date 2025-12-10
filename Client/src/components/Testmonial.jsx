@@ -12,8 +12,7 @@ export default function Testmonial() {
           <figure className="mt-10">
             <blockquote className="text-center text-xl/8 font-semibold text-white sm:text-2xl/9">
               <p>
-                “Lorem ipsum dolor sit amet consectetur adipisicing elit. Nemo expedita voluptas culpa sapiente alias
-                molestiae. Numquam corrupti in laborum sed rerum et corporis.”
+                "Nos produits cosmétiques naturels ont transformé ma routine beauté. Une qualité exceptionnelle et des résultats visibles dès les premières utilisations."
               </p>
             </blockquote>
             <figcaption className="mt-10">

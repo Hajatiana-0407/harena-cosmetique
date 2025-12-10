@@ -95,7 +95,7 @@ const defaultTabsContent = {
 const DetailProduit = ({ id: propId }) => {
   const { id: paramId } = useParams();
   const id = propId || paramId;
-  
+
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('Présentation');
   const [product, setProduct] = useState(null);
@@ -150,11 +150,11 @@ const DetailProduit = ({ id: propId }) => {
         setLoading(true);
         setError(null);
         if (id) {
-          const { data } = await api.get(`/produits/${id}`);
+          const { data } = await api.get(`/api/produits/${id}`);
           if (!isMounted) return;
           setProduct(data);
         } else {
-          const { data } = await api.get('/produits');
+          const { data } = await api.get('/api/produits');
           if (!isMounted) return;
           const first = Array.isArray(data) ? data[0] : null;
           setProduct(first || null);
@@ -236,31 +236,31 @@ const DetailProduit = ({ id: propId }) => {
         <div className="flex flex-col items-center">
             {/* Image Principale */}
             <div className="w-full max-w-lg mb-6">
-                <img 
+                <img
                     src={mainImage}
-                    alt={dataTitle} 
+                    alt={dataTitle}
                     className="w-full h-100 object-cover rounded-lg shadow-xl hover:shadow-2xl transition duration-300"
                 />
             </div>
-            
+
             {/* Miniatures (Navigation) - Simulation */}
             <div className="flex space-x-3">
                 <div className={`w-16 h-16 flex justify-center items-center border-2 rounded-lg cursor-pointer border-gray-200 hover:border-gray-400`}>
-                    <img 
+                    <img
                         src={image_mini1}
-                        alt={dataTitle} 
+                        alt={dataTitle}
                         className="w-15 h-15 object-cover rounded shadow-xl hover:shadow-2xl transition duration-300"
                     />
                 </div>
                 <div className={`w-16 h-16 flex justify-center items-center border-2 rounded-lg cursor-pointer border-gray-200 hover:border-gray-400`}>
-                      <img 
+                      <img
                         src={image_mini2}
                         alt={dataTitle}
                         className="w-15 h-15 object-cover rounded shadow-xl hover:shadow-2xl transition duration-300"
                     />
                 </div>
                 <div className={`w-16 h-16 border-2 flex justify-center items-center rounded-lg cursor-pointer border-gray-200 hover:border-gray-400`}>
-                    <img 
+                    <img
                         src={image_mini3}
                         alt={dataTitle}
                         className="w-15 h-15 object-cover rounded shadow-xl hover:shadow-2xl transition duration-300"
@@ -271,7 +271,7 @@ const DetailProduit = ({ id: propId }) => {
 
         {/* Colonne 2: Informations Produit & CTA */}
         <div className="space-y-6 text-left">
-          
+
           <h1 className="text-4xl font-extrabold leading-snug" style={{ color: COLOR_TEXT }}>
             {dataTitle}
           </h1>
@@ -305,8 +305,8 @@ const DetailProduit = ({ id: propId }) => {
               {/* Quantité & Bouton Ajouter au panier */}
               <div className="flex items-center space-x-4">
                 <div className="flex items-center border border-gray-300 rounded-full overflow-hidden shadow-sm">
-                    <button 
-                      onClick={() => handleQuantityChange(-1)} 
+                    <button
+                      onClick={() => handleQuantityChange(-1)}
                       disabled={quantity <= 1}
                       className=" flex justify-center items-center  cursor-pointer p-3 w-12 h-12 text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition text-xl font-bold"
                     >
@@ -315,11 +315,11 @@ const DetailProduit = ({ id: propId }) => {
                     <input
                       type="number"
                       value={quantity}
-                      readOnly 
+                      readOnly
                       className="w-10 flex justify-center items-center text-stone-900 text-center py-2.5 text-xl font-semibold outline-none bg-white"
                     />
-                    <button 
-                      onClick={() => handleQuantityChange(1)} 
+                    <button
+                      onClick={() => handleQuantityChange(1)}
                       className=" flex justify-center items-center cursor-pointer p-3 w-12 h-12 text-gray-600 hover:bg-gray-100 transition text-xl font-bold"
                     >
                       +
@@ -371,7 +371,7 @@ const DetailProduit = ({ id: propId }) => {
 
       {/* SECTION BASSE : Contenu Détaillé et Onglets */}
       <div className="p-6 md:p-12">
-        
+
         {/* Barre d'Onglets */}
         <div className="flex border-b-2 border-gray-100 mb-8 space-x-8 overflow-x-auto whitespace-nowrap">
           {tabs.map(tab => (
@@ -379,8 +379,8 @@ const DetailProduit = ({ id: propId }) => {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`pb-4 text-xl font-bold transition duration-200 ${
-                activeTab === tab 
-                  ? `border-b-4 text-gray-900` 
+                activeTab === tab
+                  ? `border-b-4 text-gray-900`
                   : 'text-gray-500 hover:text-gray-700'
               }`}
               style={activeTab === tab ? { borderColor: COLOR_PRIMARY } : {}}
@@ -389,12 +389,12 @@ const DetailProduit = ({ id: propId }) => {
             </button>
           ))}
         </div>
-        
+
         {/* Contenu de l'Onglet */}
         <div className="py-6">
           {renderTabContent(activeTab, tabsContent)}
         </div>
-        
+
       </div>
 
       {/* SECTION AVIS CLIENTS */}

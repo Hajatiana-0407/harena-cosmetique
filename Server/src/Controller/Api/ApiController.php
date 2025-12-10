@@ -19,16 +19,19 @@ use App\Entity\Produit;
 use App\Entity\Client;
 use App\Entity\Panier;
 use App\Repository\PanierRepository;
+use App\Entity\Promo;
+use App\Repository\PromoRepository;
 
 #[Route('/api', name: 'api')]
 final class ApiController extends AbstractController
 {
     private const DEFAULT_IMAGE = '/image/beauty.jpg';
+
     #[Route('/articles', name: 'articles', methods: ['GET'])]
     public function getArticles(Request $request, ArticleRepository $articleRepository): Response
     {
         $query = $request->query->get('q');
-        
+
         if ($query) {
             $articles = $articleRepository->createQueryBuilder('a')
                 ->where('a.titre LIKE :query')
@@ -47,11 +50,11 @@ final class ApiController extends AbstractController
     public function getArticle(int $id, ArticleRepository $articleRepository): Response
     {
         $article = $articleRepository->find($id);
-        
+
         if (!$article) {
             return $this->json(['error' => 'Article not found'], 404);
         }
-        
+
         return $this->json($article, 200, [], ['groups' => 'article:read']);
     }
 
@@ -59,7 +62,7 @@ final class ApiController extends AbstractController
     public function getProduits(ProduitRepository $produitRepository): Response
     {
         $produits = $produitRepository->findAll();
-        
+
         // Utiliser l'image temporaire pour tous les produits
         foreach ($produits as $produit) {
             if (!$produit->getImage() || empty($produit->getImage())) {
@@ -75,7 +78,7 @@ final class ApiController extends AbstractController
                 $produit->setImageMini3('/image/beauty.jpg');
             }
         }
-        
+
         return $this->json($produits, 200, [], ['groups' => 'produit:read']);
     }
 
@@ -83,16 +86,16 @@ final class ApiController extends AbstractController
     public function getProduit(int $id, ProduitRepository $produitRepository): Response
     {
         $produit = $produitRepository->find($id);
-        
+
         if (!$produit) {
             return $this->json(['error' => 'Produit not found'], 404);
         }
-        
+
         // Utiliser l'image temporaire si nécessaire
         if (!$produit->getImage() || empty($produit->getImage())) {
             $produit->setImage('/image/beauty.jpg');
         }
-        
+
         return $this->json($produit, 200, [], ['groups' => 'produit:read']);
     }
 
@@ -107,11 +110,11 @@ final class ApiController extends AbstractController
     public function getCategorie(int $id, CategorieRepository $categorieRepository): Response
     {
         $categorie = $categorieRepository->find($id);
-        
+
         if (!$categorie) {
             return $this->json(['error' => 'Categorie not found'], 404);
         }
-        
+
         return $this->json($categorie, 200, [], ['groups' => 'categorie:read']);
     }
 
@@ -119,20 +122,20 @@ final class ApiController extends AbstractController
     public function getCategorieProducts(int $id, CategorieRepository $categorieRepository): Response
     {
         $categorie = $categorieRepository->find($id);
-        
+
         if (!$categorie) {
             return $this->json(['error' => 'Categorie not found'], 404);
         }
-        
+
         $produits = $categorie->getProduitsCategorie();
-        
+
         // Appliquer les images temporaires
         foreach ($produits as $produit) {
             if (!$produit->getImage() || empty($produit->getImage())) {
                 $produit->setImage('/image/beauty.jpg');
             }
         }
-        
+
         return $this->json($produits, 200, [], ['groups' => 'produit:read']);
     }
 
@@ -140,14 +143,14 @@ final class ApiController extends AbstractController
     public function getTemoignages(TemoignageRepository $temoignageRepository): Response
     {
         $temoignages = $temoignageRepository->findAll();
-        
+
         // Utiliser l'image temporaire pour les témoignages
         foreach ($temoignages as $temoignage) {
             if (!$temoignage->getImage() || empty($temoignage->getImage())) {
                 $temoignage->setImage('/image/beauty.jpg');
             }
         }
-        
+
         return $this->json($temoignages, 200, [], ['groups' => 'temoignage:read']);
     }
 
@@ -157,7 +160,6 @@ final class ApiController extends AbstractController
         $avis = $avisRepository->findAll();
         return $this->json($avis, 200, [], ['groups' => 'avis:read']);
     }
-
 
     #[Route('/avis/produit/{id}', name: 'avis_produit', methods: ['GET'])]
     public function getAvisByProduit(int $id, AvisRepository $avisRepository): Response
@@ -171,7 +173,7 @@ final class ApiController extends AbstractController
     {
         // Only accept POST requests for security
         $data = json_decode($request->getContent(), true) ?? [];
-        
+
         // Sanitize and validate inputs
         $email = isset($data['email']) ? trim(strip_tags($data['email'])) : null;
         $password = isset($data['password']) ? $data['password'] : null;
@@ -179,7 +181,7 @@ final class ApiController extends AbstractController
         // Validate required fields
         if (!$email || !$password) {
             return $this->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Email et mot de passe requis'
             ], 400);
         }
@@ -187,7 +189,7 @@ final class ApiController extends AbstractController
         // Validate email format
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Format d\'email invalide'
             ], 400);
         }
@@ -195,7 +197,7 @@ final class ApiController extends AbstractController
         // Validate password length (minimum security check)
         if (strlen($password) < 6) {
             return $this->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Identifiants invalides'
             ], 401);
         }
@@ -205,7 +207,7 @@ final class ApiController extends AbstractController
         // Use generic error message to prevent user enumeration
         if (!$client || !$passwordHasher->isPasswordValid($client, $password)) {
             return $this->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Identifiants invalides'
             ], 401);
         }
@@ -485,7 +487,7 @@ final class ApiController extends AbstractController
         // Retrieve client from session (simulated for now as session might not be persistent in this context without proper config)
         // In a real API, use JWT or Session cookie. Here we check if 'client' is in session or passed as query param for testing.
         $clientId = $request->query->get('clientId');
-        
+
         if (!$clientId) {
              // Try to get from session if available
              $sessionClient = $request->getSession()->get('client');
@@ -628,5 +630,61 @@ final class ApiController extends AbstractController
         }
 
         return $this->json(['success' => true, 'message' => 'Panier vidé']);
+    }
+
+    #[Route('/promo/validate', name: 'validate_promo', methods: ['POST'])]
+    public function validatePromoCode(Request $request, PromoRepository $promoRepository): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $code = trim($data['code'] ?? '');
+
+        if (!$code) {
+            return $this->json(['success' => false, 'message' => 'Code promo requis'], 400);
+        }
+
+        $promo = $promoRepository->findActivePromoByCode($code);
+
+        if (!$promo) {
+            return $this->json(['success' => false, 'message' => 'Code promo invalide ou expiré'], 400);
+        }
+
+        return $this->json([
+            'success' => true,
+            'type' => $promo->getType(),
+            'valeur' => $promo->getValeur(),
+            'description' => $promo->getDescription()
+        ]);
+    }
+
+    #[Route('/newsletter/subscribe', name: 'newsletter_subscribe', methods: ['POST'])]
+    public function subscribeNewsletter(Request $request, EntityManagerInterface $em, NewsletterRepository $newsletterRepository): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $email = trim($data['email'] ?? '');
+
+        if (!$email) {
+            return $this->json(['success' => false, 'message' => 'Email requis'], 400);
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->json(['success' => false, 'message' => 'Format d\'email invalide'], 400);
+        }
+
+        // Check if email already subscribed
+        $existing = $newsletterRepository->findOneBy(['email' => $email]);
+        if ($existing) {
+            return $this->json(['success' => false, 'message' => 'Vous êtes déjà inscrit à la newsletter'], 409);
+        }
+
+        // Create and persist new subscription
+        $newsletter = new Newsletter();
+        $newsletter->setEmail($email);
+        $newsletter->setCreatedAt(new \DateTimeImmutable());
+
+        $em->persist($newsletter);
+        $em->flush();
+
+        return $this->json(['success' => true, 'message' => 'Inscription à la newsletter réussie']);
     }
 }

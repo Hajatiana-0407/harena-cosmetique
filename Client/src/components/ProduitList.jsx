@@ -11,7 +11,7 @@ export default function ProductList() {
     let isMounted = true;
     (async () => {
       try {
-        const { data } = await api.get('/categories');
+        const { data } = await api.get('/api/categories');
         if (!isMounted) return;
         setCategories(Array.isArray(data) ? data : []);
       } catch (err) {

@@ -40,12 +40,12 @@ adresse: parsed.adresse || ''
 
 if (parsed?.photo) {
 if (parsed.photo === 'default-avatar.jpg') {
-setPhotoUrl('/public/images/pdp.jpg'); // Fallback to existing default
+setPhotoUrl('/images/MonLogo.png'); // Fallback to existing default
 } else {
 setPhotoUrl(`${BASE_URL}/image/avatars/${parsed.photo}`);
 }
 } else {
-setPhotoUrl('/public/images/pdp.jpg');
+setPhotoUrl('/images/MonLogo.png');
 }
 } catch (e) {
 console.error('Invalid client data in storage', e);
@@ -124,17 +124,13 @@ submitFormData.append('photo', selectedPhoto);
 }
 
 try {
-const response = await api.put(`/api/client/${client.id}/update`, submitFormData, {
-headers: {
-'Content-Type': 'multipart/form-data',
-}
-});
+const response = await api.put(`/api/client/${client.id}/update`, submitFormData);
 
 if (response.data.success) {
 const updatedClient = { ...client, ...formData };
 if (response.data.client.photo) {
 updatedClient.photo = response.data.client.photo;
-const newPhotoUrl = response.data.client.photoUrl || (response.data.client.photo === 'default-avatar.jpg' ? '/public/images/pdp.jpg' : `${BASE_URL}/image/avatars/${response.data.client.photo}`);
+const newPhotoUrl = response.data.client.photoUrl || (response.data.client.photo === 'default-avatar.jpg' ? '/images/MonLogo.png' : `${BASE_URL}/image/avatars/${response.data.client.photo}`);
 setPhotoUrl(newPhotoUrl);
 }
 localStorage.setItem('client', JSON.stringify(updatedClient));
@@ -151,7 +147,7 @@ setError(response.data.message || 'Erreur lors de la mise à jour');
 }
 } catch (err) {
 console.error('Update error:', err);
-setError('Une erreur est survenue lors de la mise à jour');
+setError(err.response?.data?.error || 'Une erreur est survenue lors de la mise à jour');
 }
 };
 
@@ -191,7 +187,7 @@ src={isEditing && photoPreview ? photoPreview : photoUrl}
 alt="Photo de profil"
 className="w-28 h-28 rounded-2xl object-cover ring-2 ring-[#5C4033]"
 onError={(e) => {
-e.target.src = '/public/images/pdp.jpg';
+e.target.src = '/images/MonLogo.png';
 }}
 />
 {isEditing && (

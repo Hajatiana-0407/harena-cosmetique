@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ProduitRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -45,7 +46,7 @@ class Produit
     private ?int $stock = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['categorie:read', 'produit:read'])] 
+    #[Groups(['categorie:read', 'produit:read'])]
     private ?string $image = null;
 
     /**
@@ -81,9 +82,22 @@ class Produit
     #[Groups(['produit:read'])]
     private ?string $presentation = null;
 
+    #[ORM\Column(type: 'float', nullable: true)]
+    #[Groups(['produit:read'])]
+    private ?float $promo_price = null;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    #[Groups(['produit:read'])]
+    private ?bool $promo_active = false;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(['produit:read'])]
+    private ?\DateTimeInterface $promo_expiration = null;
+
     public function __construct()
     {
         $this->avis = new ArrayCollection();
+        $this->promo_active = false;
     }
     
     public function __toString(): string
@@ -269,6 +283,42 @@ class Produit
     public function setPresentation(?string $presentation): static
     {
         $this->presentation = $presentation;
+
+        return $this;
+    }
+
+    public function getPromoPrice(): ?float
+    {
+        return $this->promo_price;
+    }
+
+    public function setPromoPrice(?float $promo_price): static
+    {
+        $this->promo_price = $promo_price;
+
+        return $this;
+    }
+
+    public function isPromoActive(): ?bool
+    {
+        return $this->promo_active;
+    }
+
+    public function setPromoActive(bool $promo_active): static
+    {
+        $this->promo_active = $promo_active;
+
+        return $this;
+    }
+
+    public function getPromoExpiration(): ?\DateTimeInterface
+    {
+        return $this->promo_expiration;
+    }
+
+    public function setPromoExpiration(?\DateTimeInterface $promo_expiration): static
+    {
+        $this->promo_expiration = $promo_expiration;
 
         return $this;
     }

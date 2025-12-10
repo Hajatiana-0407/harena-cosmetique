@@ -1,18 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// Icônes
-import { FaMobileAlt, FaLock, FaUser, FaArrowLeft, FaMoneyBillWave, FaTag, FaCreditCard, FaShieldAlt } from 'react-icons/fa'; 
-import { SiOrange, SiAirtel } from 'react-icons/si';  
-
-// console.log(PanierComponent);
+// Icônes from lucide-react
+import { ArrowLeft, Smartphone, CreditCard, Shield, User, Tag, DollarSign, Lock } from 'lucide-react';
+import PapiPayForm from '../components/PapiPayForm.jsx';
 
 
 // Définition des méthodes de paiement et de leurs couleurs
 const PAYMENT_METHODS = {
-  MVOLA: { name: 'Mvola', mainColor: 'green-600', accentColor: 'amber-400', icon: FaMobileAlt },
-  ORANGE: { name: 'Orange', mainColor: 'orange-600', accentColor: 'orange-300', icon: SiOrange },
-  AIRTEL: { name: 'Airtel', mainColor: 'red-600', accentColor: 'red-300', icon: SiAirtel },
-  CARD: { name: 'Carte', mainColor: 'blue-600', accentColor: 'blue-300', icon: FaCreditCard },
+  MVOLA: { name: 'Mvola', mainColor: 'green-600', accentColor: 'amber-400', icon: Smartphone },
+  ORANGE: { name: 'Orange', mainColor: 'orange-600', accentColor: 'orange-300', icon: Smartphone },
+  AIRTEL: { name: 'Airtel', mainColor: 'red-600', accentColor: 'red-300', icon: Smartphone },
+  CARD: { name: 'Carte', mainColor: 'blue-600', accentColor: 'blue-300', icon: CreditCard },
 };
 
 // Thème principal de la carte : Marron/Beige (stone)

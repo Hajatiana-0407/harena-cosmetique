@@ -14,6 +14,9 @@ use App\Entity\User;
 use App\Entity\Message;
 use App\Entity\Panier;
 use App\Entity\Contact;
+use App\Entity\Promo;
+use App\Entity\Newsletter;
+use App\Controller\Admin\NewsletterCrudController;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -108,31 +111,29 @@ class AdminController extends AbstractDashboardController
         if ($this->isGranted('ROLE_ADMIN')) {
             // Catalogue
             yield MenuItem::section('Catalogue');
-            yield MenuItem::subMenu('Produits', 'fas fa-box')->setSubItems([
-                MenuItem::linkToCrud('Liste des produits', 'fas fa-list', Produit::class),
-                MenuItem::linkToCrud('Catégories', 'fas fa-tags', Categorie::class),
-            ]);
+
+            yield  MenuItem::linkToCrud('Liste des produits', 'fas fa-box', Produit::class);
+            yield  MenuItem::linkToCrud('Catégories', 'fas fa-tags', Categorie::class);
+ 
 
             // Commandes
             yield MenuItem::section('Ventes');
-            yield MenuItem::subMenu('Commandes', 'fas fa-shopping-cart')->setSubItems([
-                MenuItem::linkToCrud('Toutes les commandes', 'fas fa-list', Commande::class),
-                MenuItem::linkToCrud('Paniers', 'fas fa-shopping-basket', Panier::class),
-                MenuItem::linkToCrud('Paiements', 'fas fa-money-bill', Paiement::class),
-            ]);
+            yield MenuItem::linkToCrud('Toutes les commandes', 'fas fa-shopping-cart', Commande::class);
+            // yield MenuItem::linkToCrud('Paniers', 'fas fa-shopping-basket', Panier::class);
+            yield MenuItem::linkToCrud('Paiements', 'fas fa-money-bill', Paiement::class);
 
             // Clients
             yield MenuItem::section('Relations clients');
-            yield MenuItem::subMenu('Clients', 'fas fa-users')->setSubItems([
-                MenuItem::linkToCrud('Liste des clients', 'fas fa-list', Client::class),
-                MenuItem::linkToCrud('Messages', 'fas fa-envelope', Message::class),
-                MenuItem::linkToCrud('Avis clients', 'fas fa-star', Avis::class),
-                MenuItem::linkToCrud('Témoignages', 'fas fa-comment', Temoignage::class),
-            ]);
+            yield MenuItem::linkToCrud('Liste des clients', 'fas fa-users', Client::class);
+            yield MenuItem::linkToCrud('Messages', 'fas fa-envelope', Message::class);
+            yield MenuItem::linkToCrud('Avis clients', 'fas fa-star', Avis::class);
+            yield MenuItem::linkToCrud('Témoignages', 'fas fa-comment', Temoignage::class);
+            yield MenuItem::linkToCrud('Abonnés Newsletter', 'fas fa-envelope-open', Newsletter::class)->setController(NewsletterCrudController::class);
 
             // Marketing
             yield MenuItem::section('Marketing');
             yield MenuItem::linkToCrud('Blog', 'fas fa-newspaper', Article::class);
+            yield MenuItem::linkToCrud('Codes promo', 'fas fa-percent', Promo::class)->setController(PromoCrudController::class);
 
             // Administration
             yield MenuItem::section('Administration');

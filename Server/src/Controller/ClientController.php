@@ -35,7 +35,7 @@ final class ClientController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/update', name: 'app_client_update', methods: ['PUT'])]
+    #[Route('/{id}/update', name: 'app_client_update', methods: ['PUT', 'POST'])]
     public function updateClient(int $id, Request $request, EntityManagerInterface $em): JsonResponse
     {
         $client = $em->getRepository(Client::class)->find($id);
@@ -44,61 +44,19 @@ final class ClientController extends AbstractController
             return $this->json(['error' => 'Client non trouvé'], Response::HTTP_NOT_FOUND);
         }
 
-        // Handle text fields from form data
-        if ($request->request->has('nom')) {
-            $client->setNom($request->request->get('nom'));
+        $data = json_decode($request->getContent(), true);
+
+        if (isset($data['nom'])) {
+            $client->setNom($data['nom']);
         }
-        if ($request->request->has('prenom')) {
-            $client->setPrenom($request->request->get('prenom'));
+        if (isset($data['prenom'])) {
+            $client->setPrenom($data['prenom']);
         }
-        if ($request->request->has('telephone')) {
-            $client->setTelephone($request->request->get('telephone'));
+        if (isset($data['telephone'])) {
+            $client->setTelephone($data['telephone']);
         }
-        if ($request->request->has('adresse')) {
-            $client->setAdresse($request->request->get('adresse'));
-        }
-
-        // Handle photo upload if provided
-        $file = $request->files->get('photo');
-        if ($file) {
-            // Validate file type
-            $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
-                return $this->json(['error' => 'Format de fichier non autorisé. Utilisez JPG, PNG ou WEBP'], Response::HTTP_BAD_REQUEST);
-            }
-
-            // Validate file size (max 5MB)
-            if ($file->getSize() > 5 * 1024 * 1024) {
-                return $this->json(['error' => 'Le fichier est trop volumineux (max 5MB)'], Response::HTTP_BAD_REQUEST);
-            }
-
-            $uploadsDirectory = $this->getParameter('kernel.project_dir') . '/public/image/avatars';
-
-            // Create directory if it doesn't exist
-            if (!is_dir($uploadsDirectory)) {
-                mkdir($uploadsDirectory, 0777, true);
-            }
-
-            // Generate unique filename
-            $newFilename = uniqid() . '.' . $file->guessExtension();
-
-            try {
-                $file->move($uploadsDirectory, $newFilename);
-
-                // Delete old photo if it's not the default
-                $oldPhoto = $client->getPhoto();
-                if ($oldPhoto && $oldPhoto !== 'default-avatar.jpg') {
-                    $oldPhotoPath = $uploadsDirectory . '/' . $oldPhoto;
-                    if (file_exists($oldPhotoPath)) {
-                        unlink($oldPhotoPath);
-                    }
-                }
-
-                // Update client photo
-                $client->setPhoto($newFilename);
-            } catch (FileException $e) {
-                return $this->json(['error' => 'Erreur lors de l\'upload du fichier'], Response::HTTP_INTERNAL_SERVER_ERROR);
-            }
+        if (isset($data['adresse'])) {
+            $client->setAdresse($data['adresse']);
         }
 
         $em->flush();
@@ -114,7 +72,6 @@ final class ClientController extends AbstractController
                 'telephone' => $client->getTelephone(),
                 'adresse' => $client->getAdresse(),
                 'photo' => $client->getPhoto(),
-                'photoUrl' => $client->getPhoto() ? '/image/avatars/' . $client->getPhoto() : null,
             ]
         ]);
     }
@@ -146,7 +103,7 @@ final class ClientController extends AbstractController
         }
 
         $uploadsDirectory = $this->getParameter('kernel.project_dir') . '/public/image/avatars';
-        
+
         // Create directory if it doesn't exist
         if (!is_dir($uploadsDirectory)) {
             mkdir($uploadsDirectory, 0777, true);
@@ -157,7 +114,7 @@ final class ClientController extends AbstractController
 
         try {
             $file->move($uploadsDirectory, $newFilename);
-            
+
             // Delete old photo if it's not the default
             $oldPhoto = $client->getPhoto();
             if ($oldPhoto && $oldPhoto !== 'default-avatar.jpg') {

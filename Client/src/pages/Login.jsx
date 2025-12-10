@@ -63,7 +63,7 @@ const LoginPage = () => {
     }
 
     try {
-      const { data } = await api.post("/login", {
+      const { data } = await api.post("/api/auth/login", {
         email: sanitizedEmail,
         password: sanitizedPassword,
       });

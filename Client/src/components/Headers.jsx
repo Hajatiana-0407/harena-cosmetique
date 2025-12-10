@@ -12,7 +12,7 @@ export default function Header() {
 
   useEffect(() => {
     const checkAuth = () => {
-      const clientData = sessionStorage.getItem('client');
+      const clientData = localStorage.getItem('client');
       const parsedClient = clientData ? JSON.parse(clientData) : null;
       setIsLoggedIn(!!parsedClient);
       setClient(parsedClient);

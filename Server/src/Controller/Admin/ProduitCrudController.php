@@ -15,6 +15,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use Doctrine\ORM\EntityManagerInterface;
 
 use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
@@ -47,6 +49,12 @@ class ProduitCrudController extends AbstractCrudController
             MoneyField::new('prix', 'Prix')
                 ->setCurrency('MGA')
                 ->setStoredAsCents(false),
+            MoneyField::new('promo_price', 'Prix promo')
+                ->setCurrency('MGA')
+                ->setStoredAsCents(false)
+                ->hideOnIndex(),
+            BooleanField::new('promo_active', 'Promo active'),
+            DateTimeField::new('promo_expiration', 'Expiration promo')->setRequired(false)->hideOnIndex(),
             IntegerField::new('stock', 'Stock'),
             AssociationField::new('id_categorie', 'Catégorie'),
             AssociationField::new('avis', 'Avis')

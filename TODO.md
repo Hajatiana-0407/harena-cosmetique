@@ -7,10 +7,10 @@
 
 ## 2. Add profile editing form in compte.jsx with PUT /api/client/update API route
 - [x] Create PUT /api/client/update route in ApiController.php to handle profile updates
-- [ ] Add file upload handling for photo in the API route
-- [ ] Update Client entity if needed (add image field)
-- [ ] Add edit form in compte.jsx for name, email, address, phone, photo
-- [ ] Connect form to API and handle success/error responses
+- [x] Add file upload handling for photo in the API route
+- [x] Update Client entity if needed (add image field)
+- [x] Add edit form in compte.jsx for name, email, address, phone, photo
+- [x] Connect form to API and handle success/error responses
 
 ## 3. Add search API route and make Headers search functional
 - [x] Create GET /api/search route in ApiController.php to search products by name/description
