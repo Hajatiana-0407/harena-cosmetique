@@ -242,9 +242,10 @@ const MessengerInterface = ({ messages: initialMessagesProp }) => {
     const fetchMessages = async () => {
       try {
         const response = await api.get('/messages');
-        if (response.data) {
+        const data = Array.isArray(response.data) ? response.data : [];
+        if (data.length > 0) {
           // Grouper les messages par date
-          const groupedMessages = response.data.reduce((groups, msg) => {
+          const groupedMessages = data.reduce((groups, msg) => {
             const date = new Date(msg.created_at).toISOString().split('T')[0];
             if (!groups[date]) groups[date] = [];
             groups[date].push({

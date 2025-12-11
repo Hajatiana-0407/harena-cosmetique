@@ -21,6 +21,7 @@ use App\Entity\Panier;
 use App\Repository\PanierRepository;
 use App\Entity\Promo;
 use App\Repository\PromoRepository;
+use App\Repository\NewsletterRepository;
 
 #[Route('/api', name: 'api')]
 final class ApiController extends AbstractController

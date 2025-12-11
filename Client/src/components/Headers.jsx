@@ -144,21 +144,52 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* Menu mobile */}
-      {isOpen && (
-        <div className="lg:hidden bg-[#fdf6ec] shadow-md border-t border-[#d4bfa4]">
-          <nav className="flex flex-col space-y-2 p-4 text-[#6b4226] font-medium text-left">
-            <Link to="/" className="hover:text-[#8b5e3c]">ACCUEIL</Link>
-            <Link to="/catalogue" className="hover:text-[#8b5e3c]">CATALOGUE</Link>
-            <Link to="/produit" className="hover:text-[#8b5e3c]">PRODUITS</Link>
-            <Link to="/blog" className="hover:text-[#8b5e3c]">BLOG</Link>
-            <Link to="/faq" className="hover:text-[#8b5e3c]">FAQ</Link>
-            {/* <Link to="/panier" className="hover:text-[#8b5e3c]">PANIER</Link> */}
-            <Link to="/a-propos" className="hover:text-[#8b5e3c]">A PROPOS</Link>
-            <Link to="/contact" className="hover:text-[#8b5e3c]">CONTACT</Link>
+      {/* Menu mobile moderne - Slide-in Sidebar */}
+      <div className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setIsOpen(false)}></div>
+        <div className={`absolute right-0 top-0 h-full w-80 bg-[#fdf6ec] shadow-xl transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="flex items-center justify-between p-6 border-b border-[#d4bfa4]">
+            <h2 className="text-xl font-bold text-[#6b4226]">Menu</h2>
+            <button onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <nav className="flex flex-col p-6 space-y-4">
+            <Link to="/" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">ACCUEIL</Link>
+            <Link to="/catalogue" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">CATALOGUE</Link>
+            <Link to="/produit" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">PRODUITS</Link>
+            <Link to="/blog" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">BLOG</Link>
+            <Link to="/faq" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">FAQ</Link>
+            <Link to="/a-propos" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">A PROPOS</Link>
+            <Link to="/contact" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2">CONTACT</Link>
           </nav>
+          {/* Recherche mobile */}
+          <div className="p-6 border-t border-[#d4bfa4]">
+            <div className="relative">
+              <input
+                type="search"
+                placeholder="Rechercher..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                    setIsOpen(false);
+                  }
+                }}
+                className="w-full border border-[#d4bfa4] rounded-full py-2 px-4 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] bg-[#fffaf5]"
+              />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a27c56]">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </header>
   );
 }

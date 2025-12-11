@@ -6,13 +6,13 @@ root:
         route: 'app_login'
         permanent: false
 
-# Routes pour les contrôleurs API (préfixe /api)
+# Routes pour les contrôleurs API
 api_controllers:
     resource:
         path: ../src/Controller/Api/
         namespace: App\Controller\Api
     type: attribute
-    prefix: /api
+    prefix: /
 
 # Routes pour les contrôleurs Admin (sans préfixe)
 admin_controllers:

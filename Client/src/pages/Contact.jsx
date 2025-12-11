@@ -49,21 +49,17 @@ export default function ContactComponent() {
       } else {
         setMessage(response.data.message || 'Erreur lors de l\'envoi');
       }
-    } catch (error) {
+    } catch {
       setMessage('Erreur lors de l\'envoi du message');
     } finally {
       setLoading(false);
     }
   };
   return (
-    // CONTENEUR GLOBAL: Changement de bg-gray-900 à bg-[#fdf6ec] (beige très clair)
-    <div className="isolate bg-[#fdf6ec] px-6 py-24 sm:py-32 lg:px-8">
-      
-      {/* EFFET DE FOND (Gradiant) :
-        Ajustement des couleurs de l'effet d'arrière-plan pour correspondre au thème. 
-        Note : Les classes Tailwind personnalisées comme 'aspect-1155/678' ou 'w-144.5' 
-        sont conservées, mais les couleurs 'from-[#ff80b5] to-[#9089fc]' sont modifiées.
-      */}
+    // CONTENEUR GLOBAL: Modern design with subtle gradient background
+    <div className="min-h-screen bg-gradient-to-br from-[#fdf6ec] via-[#f9f3e8] to-[#f0e6d2] px-6 sm:py-5 lg:px-8 relative overflow-hidden">
+
+      {/* EFFET DE FOND MODERNE: Enhanced gradient with better opacity and positioning */}
       <div
         aria-hidden="true"
         className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
@@ -73,8 +69,7 @@ export default function ContactComponent() {
             clipPath:
               'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
           }}
-          // Couleurs de gradiant ajustées : du beige clair au marron (degradé subtil sur fond clair)
-          className="relative left-1/2 -z-10 aspect-1155/678 w-144.5 max-w-none -translate-x-1/2 rotate-30 bg-linear-to-tr from-[#d4bfa4] to-[#a27c56] opacity-30 sm:left-[calc(50%-40rem)] sm:w-288.75"
+          className="relative left-1/2 -z-10 aspect-1155/678 w-144.5 max-w-none -translate-x-1/2 rotate-30 bg-gradient-to-tr from-[#e8d5b7] via-[#d4bfa4] to-[#b89b7c] opacity-20 sm:left-[calc(50%-40rem)] sm:w-288.75"
         />
       </div>
 
@@ -87,7 +82,7 @@ export default function ContactComponent() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mx-auto mt-16 max-w-xl sm:mt-20">
+      <form onSubmit={handleSubmit} className="mx-auto max-w-xl sm:mt-5 bg-white/50 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
         <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
           
           {/* Nom */}
