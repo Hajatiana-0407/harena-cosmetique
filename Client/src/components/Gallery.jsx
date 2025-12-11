@@ -114,7 +114,7 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
             <Eye size={20} className="text-[#5C4033]" />
           </button>
           <a
-            href={`/produit/${product.id}`}
+            href={`/produit?id=${product.id}`}
             className="rounded-xl bg-gradient-to-r from-[#5C4033] to-[#8B5E3C] px-6 py-3 text-sm font-bold text-white hover:from-[#8B5E3C] hover:to-[#5C4033] text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >
             Voir détails
@@ -198,7 +198,7 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
           </p>
           <div className="flex gap-3">
             <a
-              href={`/produit/${product.id}`}
+              href={`/produit?id=${product.id}`}
               className="flex-1 rounded-xl bg-gradient-to-r from-[#5C4033] to-[#8B5E3C] py-3 text-sm font-bold text-white hover:from-[#8B5E3C] hover:to-[#5C4033] text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               👁️ Voir
@@ -255,7 +255,7 @@ export default function Gallery() {
             rating: p.note || p.rating || 5,
             reviews: p.reviews || 0,
             price: p.prix || p.price || 0,
-            category: p.categorie?.nom || p.category || "autres",
+            category: p.categorie?.nom || p.category ,
             categoryId: p.categorie?.id
           }));
           setProducts(normalized);
@@ -276,7 +276,7 @@ export default function Gallery() {
             rating: p.note || p.rating || 5,
             reviews: p.reviews || 0,
             price: p.prix || p.price || 0,
-            category: p.categorie?.nom || p.category || "autres",
+            category: p.categorie?.nom || p.category ,
             categoryId: p.categorie?.id
           }));
           setProducts(normalized);
@@ -427,7 +427,7 @@ export default function Gallery() {
         </div>
 
         {/* Affichage des produits filtrés */}
-        <div className="rounded-lg border bg-white p-4 shadow-md">
+        <div className="rounded-lg bg-white p-4 ">
           {loading ? (
             <div className="text-center py-10">Chargement des produits...</div>
           ) : filteredProducts.length === 0 ? (

@@ -43,103 +43,95 @@ const footerLinks = [
   },
 ];
 
-// --- Couleurs et Styles Tailwind (Basés sur l'image fournie) ---
-const FOOTER_BG_COLOR = 'rgb(250, 246, 241)';
-const TEXT_COLOR = '#4a3428';
-const INPUT_BORDER_COLOR = '#b2895f';
+// --- Couleurs et Styles Modernes avec touches marron ---
+const FOOTER_BG_GRADIENT = 'bg-gradient-to-b from-amber-50 to-white';
+const TEXT_COLOR = '#4a3428'; // Brown tone
+const ACCENT_COLOR = '#b2895f'; // Brown accent
+const INPUT_BG = 'bg-amber-100';
+const BUTTON_BG = 'bg-amber-600 hover:bg-amber-700';
 
 // --- Composant Principal Exporté ---
 export const Footer = () => {
   const [email, setEmail] = useState('');
-  
+
   const handleSubscribe = (e) => {
-      e.preventDefault();
-      // Placeholder pour la logique d'inscription à la newsletter
-      console.log(`Subscription attempt with: ${email}`);
+    e.preventDefault();
+    // Placeholder pour la logique d'inscription à la newsletter
+    console.log(`Subscription attempt with: ${email}`);
   };
 
   return (
-    <footer className="w-full bg-white font-sans text-base">
-        <div className='text-left text-4xl font-bold tex text-stone-900 p-5 pt-10'>Harena Cosmétiques </div>
+    <footer className={`w-full ${FOOTER_BG_GRADIENT} font-sans text-base shadow-lg`}>
+      {/* Header Section */}
+      <div className="text-center py-8 px-4">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Harena Cosmétiques</h1>
+        <p className="text-gray-600 text-sm md:text-base">Votre partenaire pour une beauté naturelle et durable</p>
+      </div>
 
-        {/* 1. Bloc Newsletter (Responsive) */}
-        <div 
-          className="py-5 md:py-3 px-4"
-        >
-            <div className="max-w-7xl mx-auto">
-                <h2 
-                    className="text-2xl md:text-3xl font-bold mb-4 text-left" 
-                    style={{ color: TEXT_COLOR }}
-                >
-                    Inscrivez-vous à la newsletter
-                </h2>
-                
-                <div className="flex flex-col md:flex-row md:items-start gap-6">
-                    {/* Texte et Formulaire */}
-                    <div className="md:w-1/2">
-                        <p className="mb-4 text-gray-700 text-left">
-                            Restez informé(e) de nos nouveautés et offres spéciales pour passer facilement à un mode de vie au naturel.
-                        </p>
-                        
-                        {/* Formulaire */}
-                        <form onSubmit={handleSubscribe} className="flex max-w-xs sm:max-w-sm w-full">
-                            <input
-                                type="email"
-                                placeholder="Saisissez votre email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                // Classes pour assurer l'alignement à gauche et la flexibilité
-                                className={`flex-grow py-3 px-3 bg-stone-200 text-gray-700 outline-none placeholder-gray-500 text-left`}
-                                style={{ borderBottomColor: INPUT_BORDER_COLOR }}
-                                required
-                            />
-                            <button 
-                                type="submit" 
-                                className="w-12 h-12 flex items-center justify-center text-white transition duration-200 shrink-0 hover:opacity-90 rounded-none"
-                                style={{ backgroundColor: TEXT_COLOR }}
-                                aria-label="S'inscrire à la newsletter"
-                            >
-                                &rarr;
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+      {/* Newsletter Section */}
+      <div className="py-8 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-4" style={{ color: TEXT_COLOR }}>
+            Inscrivez-vous à la newsletter
+          </h2>
+          <p className="mb-6 text-gray-700 max-w-2xl mx-auto">
+            Restez informé(e) de nos nouveautés et offres spéciales pour passer facilement à un mode de vie au naturel.
+          </p>
+
+          {/* Formulaire */}
+          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-md mx-auto">
+            <input
+              type="email"
+              placeholder="Saisissez votre email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`flex-grow py-3 px-4 ${INPUT_BG} text-gray-700 outline-none placeholder-gray-500 rounded-lg border border-gray-300 focus:border-${ACCENT_COLOR} focus:ring-2 focus:ring-${ACCENT_COLOR} transition duration-200`}
+              required
+            />
+            <button
+              type="submit"
+              className={`px-6 py-3 ${BUTTON_BG} text-white font-medium rounded-lg transition duration-200 transform hover:scale-105 shadow-md`}
+              aria-label="S'inscrire à la newsletter"
+            >
+              S'inscrire
+            </button>
+          </form>
         </div>
+      </div>
 
-        {/* 2. Bloc de Liens (Responsive: 2 colonnes par défaut, 4 sur desktop) */}
-        <div className="py-8 md:py-12 px-4 bg-white">
-            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-y-8 md:gap-x-8">
-                {footerLinks.map((section) => (
-                    <div key={section.title} className="space-y-3">
-                        <h3 
-                            className="text-base font-bold mb-3 text-left" // Titre aligné à gauche
-                            style={{ color: TEXT_COLOR }}
-                        >
-                            {section.title}
-                        </h3>
-                        <ul className="space-y-2">
-                            {section.links.map((link) => (
-                                <li key={link} className="text-left">
-                                    <a 
-                                        href="#" 
-                                        className="text-sm text-gray-700 hover:underline transition duration-150"
-                                    >
-                                        {link}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+      {/* Links Section */}
+      <div className="py-8 px-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {footerLinks.map((section) => (
+            <div key={section.title} className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800 border-b-2 border-stone-500 pb-2">
+                {section.title}
+              </h3>
+              <ul className="space-y-2">
+                {section.links.map((link) => (
+                  <li key={link}>
+                    <a
+                      href="#"
+                      className="text-gray-600 hover:text-amber-600 transition duration-200 text-sm"
+                    >
+                      {link}
+                    </a>
+                  </li>
                 ))}
+              </ul>
             </div>
+          ))}
         </div>
-        
-        {/* Ligne de fond */}
-        <div className="h-4" style={{ backgroundColor: FOOTER_BG_COLOR }}></div>
+      </div>
+
+      {/* Bottom Section */}
+      <div className="py-4 px-4 bg-gray-100 text-center">
+        <p className="text-gray-500 text-sm">
+          © 2023 Harena Cosmétiques. Tous droits réservés.
+        </p>
+      </div>
     </footer>
   );
 };
 
-
-export default Footer
+export default Footer;

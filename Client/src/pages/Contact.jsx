@@ -29,8 +29,11 @@ export default function ContactComponent() {
     setLoading(true);
     setMessage('');
 
+    // Log form data to console for debugging
+    console.log('Form data being submitted:', formData);
+
     try {
-      const response = await api.post('/contact', formData);
+      const response = await api.post('api/contact', formData);
       if (response.data.success) {
         setMessage('Message envoyé avec succès !');
         setFormData({

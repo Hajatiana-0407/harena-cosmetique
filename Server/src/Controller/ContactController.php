@@ -22,23 +22,21 @@ final class ContactController extends AbstractController
         $this->validator = $validator;
     }
 
-    #[Route('/contact', name: 'app_contact', methods: ['GET', 'POST'])]
-    public function index(Request $request): Response
-    {
-        if ($request->isMethod('POST')) {
-            return $this->handleContactForm($request);
-        }
-
-        return $this->render('contact/index.html.twig', [
-            'controller_name' => 'ContactController',
-        ]);
-    }
-
-    private function handleContactForm(Request $request): JsonResponse
+    #[Route('/api/contact', name: 'app_contact', methods: ['POST'])]
+    public function handleContactForm(Request $request): JsonResponse
     {
         try {
+            // Get JSON data from request
+            $data = json_decode($request->getContent(), true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Invalid JSON data'
+                ], 400);
+            }
+
             // Sanitize and validate input data
-            $data = $this->sanitizeInput($request->request->all());
+            $data = $this->sanitizeInput($data);
 
             // Validate required fields
             $errors = $this->validateContactData($data);
@@ -59,7 +57,7 @@ final class ContactController extends AbstractController
             $contact->setOperator($data['operator']);
             $contact->setMessage($data['message']);
             $contact->setAgreeToPolicies($data['agree-to-policies']);
-            $contact->setCreatedAt(new \DateTime());
+            $contact->setCreatedAt(new \DateTimeImmutable());
 
             // Validate entity
             $entityErrors = $this->validator->validate($contact);

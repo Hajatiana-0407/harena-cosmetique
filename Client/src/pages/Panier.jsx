@@ -185,7 +185,7 @@ export const PanierComponent = ({
 
     useEffect(() => {
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        setItems(cart);
+        setItems(cart.map(item => ({ ...item, price: parseFloat(item.price) || 0 })));
     }, []);
 
     // Réinitialiser la promo lors des changements importants

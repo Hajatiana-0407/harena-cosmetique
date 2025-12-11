@@ -168,6 +168,46 @@ final class ApiController extends AbstractController
         return $this->json($avis, 200, [], ['groups' => 'avis:read']);
     }
 
+    #[Route('/avis', name: 'create_avis', methods: ['POST'])]
+    public function createAvis(Request $request, EntityManagerInterface $em, ClientRepository $clientRepository, ProduitRepository $produitRepository): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $idClient = $data['id_client'] ?? null;
+        $idProduit = $data['id_produit'] ?? null;
+        $etoiles = $data['etoiles'] ?? null;
+        $titre = trim($data['titre'] ?? '');
+        $contenu = trim($data['contenu'] ?? '');
+
+        if (!$idClient || !$idProduit || $etoiles === null || !$titre || !$contenu) {
+            return $this->json(['success' => false, 'message' => 'Tous les champs sont requis'], 400);
+        }
+
+        if ($etoiles < 1 || $etoiles > 5) {
+            return $this->json(['success' => false, 'message' => 'Les étoiles doivent être entre 1 et 5'], 400);
+        }
+
+        $client = $clientRepository->find($idClient);
+        $produit = $produitRepository->find($idProduit);
+
+        if (!$client || !$produit) {
+            return $this->json(['success' => false, 'message' => 'Client ou Produit non trouvé'], 404);
+        }
+
+        $avis = new \App\Entity\Avis();
+        $avis->setIdClient($client);
+        $avis->setDatePost(new \DateTimeImmutable());
+        $avis->setEtoiles($etoiles);
+        $avis->setTitre($titre);
+        $avis->setContenu($contenu);
+        $avis->addProduit($produit);
+
+        $em->persist($avis);
+        $em->flush();
+
+        return $this->json(['success' => true, 'message' => 'Avis ajouté avec succès'], 201);
+    }
+
     #[Route('/auth/login', name: 'auth_login', methods: ['POST'])]
     public function login(Request $request, ClientRepository $clientRepository, UserPasswordHasherInterface $passwordHasher): Response
     {

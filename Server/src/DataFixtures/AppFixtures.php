@@ -149,11 +149,16 @@ class AppFixtures extends Fixture
             $con = new Contact();
             $con->setIdClient($faker->randomElement($clients));
             $con->setEmail("client$i@example.com");
-            $con->setSujet($faker->realText(10));
-            $con->setMessages($faker->realText(100));
+            $con->setMessage($faker->realText(100));
             $con->setCreatedAt(DateTimeImmutable::createFromMutable(
                 $faker->dateTimeBetween('-6 months', 'now')
             ));
+            $con->setNom($faker->lastName());
+            $con->setPrenom($faker->firstName());
+            $con->setAddress($faker->address());
+            $con->setPhoneNumber($faker->phoneNumber());
+            $con->setOperator($faker->randomElement(['Orange', 'Airtel', 'Telma']));
+            $con->setAgreeToPolicies($faker->boolean());
             $manager->persist($con);
         }
 

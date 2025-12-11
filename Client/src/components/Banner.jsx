@@ -79,7 +79,7 @@ export default function Banner() {
                   isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 }`} style={{ transitionDelay: '0.4s' }}>
                   <a
-                    href="/produits"
+                    href="/produit"
                     className="inline-block rounded-md bg-stone-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-stone-500 hover:scale-105 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-600 transition-all duration-300 animate-pulse-glow"
                   >
                     Découvrir nos produits

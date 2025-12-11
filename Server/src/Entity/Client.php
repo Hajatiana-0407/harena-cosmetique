@@ -71,7 +71,7 @@ class Client implements PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Temoignage>
      */
-    #[ORM\ManyToMany(targetEntity: Temoignage::class, mappedBy: 'id_client')]
+    #[ORM\OneToMany(targetEntity: Temoignage::class, mappedBy: 'id_client')]
     #[Groups('client:read')] // 👈 AJOUTÉ
     private Collection $temoignages;
 

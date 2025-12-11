@@ -126,6 +126,7 @@ class AdminController extends AbstractDashboardController
             yield MenuItem::section('Relations clients');
             yield MenuItem::linkToCrud('Liste des clients', 'fas fa-users', Client::class);
             yield MenuItem::linkToCrud('Messages', 'fas fa-envelope', Message::class);
+            yield MenuItem::linkToCrud('Contacts', 'fas fa-address-book', Contact::class);
             yield MenuItem::linkToCrud('Avis clients', 'fas fa-star', Avis::class);
             yield MenuItem::linkToCrud('Témoignages', 'fas fa-comment', Temoignage::class);
             yield MenuItem::linkToCrud('Abonnés Newsletter', 'fas fa-envelope-open', Newsletter::class)->setController(NewsletterCrudController::class);

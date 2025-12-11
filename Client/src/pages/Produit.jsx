@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { FaRegStar, FaStar, FaSearch } from 'react-icons/fa';
+import { Link, useSearchParams } from 'react-router-dom';
+import { FaSearch } from 'react-icons/fa';
 import { Star, Eye, ShoppingCart } from 'lucide-react';
 import { toast } from 'react-toastify';
 import RequestApi from '../API/RequestApi';
+import api from '../API/url';
 
 // ====================================================================
 // Pagination Component
@@ -65,7 +66,21 @@ const ProductCard = ({ product }) => {
     if (existingIndex >= 0) {
       cart[existingIndex].quantity = (cart[existingIndex].quantity || 1) + 1;
     } else {
-      cart.push({ ...product, quantity: 1 });
+      // Standardize fields for cart
+      const cartItem = {
+        id: product.id,
+        name: product.name || product.nom || 'Produit',
+        price: parseFloat(product.price || product.prix || 0) || 0, // Ensure price is a number
+        categorie: product.id_categorie?.nom || product.NomCategorie || 'Catégorie',
+        stock: product.stock || 0,
+        imageUrl: product.image ? `${api.defaults.baseURL}${product.image}` : '/image/beauty.jpg', // Full server URL
+        quantity: 1,
+        description: product.description || product.definition || 'Description non disponible',
+        rating: product.rating || 0,
+        deliveryTime: 'Maintenant',
+        isSelected: true,
+      };
+      cart.push(cartItem);
     }
     localStorage.setItem('cart', JSON.stringify(cart));
 
@@ -82,8 +97,10 @@ const ProductCard = ({ product }) => {
     toast.success(`${product.name || product.nom} ajouté au panier`);
   };
 
-  const starCount = 4;
-  const maxStars = 5; // Standard is usually 5
+  // Check if product is on promotion
+  const isOnPromo = product.promo_active && (!product.promo_expiration || new Date(product.promo_expiration) > new Date());
+  const originalPrice = parseFloat(product.price || product.prix || 0);
+  const discountPercent = isOnPromo && product.promo_price !== null && parseFloat(product.promo_price) < originalPrice ? Math.round(((originalPrice - parseFloat(product.promo_price)) / originalPrice) * 100) : 0;
 
   // Price formatter for API price
   const formatPriceApi = (price) => {
@@ -99,51 +116,59 @@ const ProductCard = ({ product }) => {
   const productDesc = product.description || product.Definition || "";
 
   return (
-    <div className='group relative hover:shadow-2xl hover:scale-105 hover:cursor-pointer cursor-pointer max-w-2xs rounded-3xl bg-white shadow-lg border border-gray-200 text-left flex flex-col transition-all duration-500 hover:-translate-y-2 overflow-hidden'>
+    <div className='group relative hover:shadow-2xl hover:scale-105 hover:cursor-pointer cursor-pointer max-w-2xs rounded-3xl bg-gradient-to-br from-white via-gray-50 to-stone-100 shadow-xl border border-gray-300 text-left flex flex-col transition-all duration-700 hover:-translate-y-3 overflow-hidden backdrop-blur-sm'>
       {/* Image container with modern styling */}
-      <div className='relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-stone-50 to-stone-100'>
+      <div className='relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-stone-100 to-stone-200'>
         <img
           src={imageSrc}
           alt={productName}
-          className='w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500'
+          className='w-full h-56 object-cover group-hover:scale-110 transition-transform duration-700'
         />
+        {/* Promo Badge */}
+        {isOnPromo && discountPercent > 0 && (
+          <div className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
+            -{discountPercent}%
+          </div>
+        )}
+        {/* Promo Text */}
+        {isOnPromo && (
+          <div className="absolute bottom-2 left-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+            En Promotion
+          </div>
+        )}
         {/* Overlay gradient on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       </div>
 
       {/* Content with modern padding and layout */}
-      <div className='p-6 flex flex-col grow justify-between'>
+      <div className='p-6 flex flex-col grow justify-between bg-white/80 backdrop-blur-sm'>
         <div>
-          <h3 className='text-2xl font-black mb-2 text-stone-800 group-hover:text-stone-900 transition-colors duration-300'>{productName}</h3>
+          <h3 className='text-2xl font-black mb-2 text-stone-800 group-hover:text-stone-900 transition-colors duration-300 bg-gradient-to-r from-stone-800 to-stone-600 bg-clip-text text-transparent'>{productName}</h3>
           <p className='text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed'>{productDesc}</p>
         </div>
 
-        {/* Rating and price section */}
+        {/* Reviews and price section */}
         <div className='flex justify-between items-end mb-4'>
           <div>
-            <div className='flex mb-2'>
-              {[...Array(maxStars)].map((_, index) =>
-                index < starCount ? (
-                  <FaStar key={index} className="text-yellow-400 w-5 h-5" />
-                ) : (
-                  <FaRegStar key={index} className="text-gray-300 w-5 h-5" />
-                )
-              )}
+            <div className='text-sm text-gray-600 mb-2'>
+              Avis: {product.nombreAvisParProduit || 0}
             </div>
-            <div className='font-black text-3xl text-stone-800 bg-gradient-to-r from-stone-800 to-stone-600 bg-clip-text text-transparent'>{formatPriceApi(product.price || product.prix)}</div>
+            <div className='font-black text-3xl text-stone-800 bg-gradient-to-r from-stone-800 to-stone-600 bg-clip-text text-transparent'>
+              {formatPriceApi(originalPrice)}
+            </div>
           </div>
         </div>
 
         {/* Buttons with modern design */}
         <div className='flex gap-3'>
           <Link
-            to={"/produit/" + product.id}
-            className="flex-1 py-3 px-4 text-center bg-gradient-to-r from-stone-800 to-stone-900 text-white rounded-full font-bold hover:from-stone-900 hover:to-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm"
+            to={`/produit?id=${product.id}`}
+            className="flex-1 py-3 px-4 text-center bg-gradient-to-r from-stone-800 to-stone-900 text-white rounded-full font-bold hover:from-stone-900 hover:to-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm backdrop-blur-sm"
           >
             <Eye className="inline w-4 h-4 mr-1" /> Voir détails
           </Link>
           <button
-            className="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full font-bold hover:from-orange-500 hover:to-amber-500 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm"
+            className="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full font-bold hover:from-orange-500 hover:to-amber-500 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm backdrop-blur-sm"
             onClick={() => addToCart(product)}
           >
             <ShoppingCart className="inline w-4 h-4 mr-1" /> Acheter
@@ -257,6 +282,8 @@ const FilterSidebar = ({
 // ====================================================================
 
 const ProduitsPage = () => {
+  const [searchParams] = useSearchParams();
+
   // 1. État des produits et des filtres
   const [products, setProducts] = useState([]);
   const [productINV, setProductINV] = useState([]);
@@ -270,7 +297,7 @@ const ProduitsPage = () => {
   const [sortOption, setSortOption] = useState('default');
 
   // Pagination States
-  const [currentTab, setCurrentTab] = useState('all'); // 'new', 'old', 'all'
+  const [currentTab, setCurrentTab] = useState('all'); // 'new', 'all'
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9; // 3x3 grid
 
@@ -300,6 +327,15 @@ const ProduitsPage = () => {
     return () => { mounted = false; };
   }, []);
 
+  // Handle category query parameter
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam && categoryParam !== 'undefined') {
+      setSelectedCategories([categoryParam]);
+      setCurrentTab('all');
+    }
+  }, [searchParams]);
+
   const toggleCategory = (categoryName) => {
     setSelectedCategories(prev =>
       prev.includes(categoryName)
@@ -308,13 +344,14 @@ const ProduitsPage = () => {
     );
   };
 
-  // Filter and Sort Logic
-  const filteredProducts = useMemo(() => {
-    let result = [...products];
+  // Helper function to apply filters and sort
+  const applyFilters = (productList) => {
+    let result = [...productList];
 
     // 1. Search
     if (searchTerm) {
       const lowerTerm = searchTerm.toLowerCase();
+      const beforeSearch = result.length;
       result = result.filter(p =>
         (p.name && p.name.toLowerCase().includes(lowerTerm)) ||
         (p.nom && p.nom.toLowerCase().includes(lowerTerm)) ||
@@ -325,17 +362,37 @@ const ProduitsPage = () => {
 
     // 2. Categories
     if (selectedCategories.length > 0) {
+      const beforeCategory = result.length;
       result = result.filter(p => {
-          const catName = p.categorie?.nom || p.NomCategorie;
-          return selectedCategories.includes(catName);
+        let catName = '';
+        let catId = null;
+        let matchingCat = null;
+
+        // Handle if id_categorie is full object (from serialization)
+        if (p.id_categorie && typeof p.id_categorie === 'object') {
+          catId = p.id_categorie.id;
+          catName = p.id_categorie.nom || p.id_categorie.Nom || '';
+        } else {
+          catId = p.id_categorie || p.categorie_id || p.categorie?.id;
+          if (catId) {
+            matchingCat = categories.find(cat => cat.id == catId);
+            catName = matchingCat ? (matchingCat.nom || matchingCat.Nom || '') : '';
+          } else {
+            catName = p.categorie?.nom || p.NomCategorie || '';
+          }
+        }
+
+        return selectedCategories.includes(catName);
       });
     }
 
     // 3. Price
     if (minPrice) {
+      const beforeMin = result.length;
       result = result.filter(p => (p.price || p.prix) >= parseFloat(minPrice));
     }
     if (maxPrice) {
+      const beforeMax = result.length;
       result = result.filter(p => (p.price || p.prix) <= parseFloat(maxPrice));
     }
 
@@ -358,21 +415,20 @@ const ProduitsPage = () => {
     }
 
     return result;
-  }, [products, searchTerm, selectedCategories, minPrice, maxPrice, sortOption]);
+  };
+
+  // Filter and Sort Logic for all products
+  const filteredProducts = useMemo(() => applyFilters(products), [products, searchTerm, selectedCategories, minPrice, maxPrice, sortOption]);
 
   // Tab-based filtering
   const tabFilteredProducts = useMemo(() => {
     if (currentTab === 'new') {
-      return [...productINV];
-    } else if (currentTab === 'old') {
-      // Old products: all filtered products except new ones
-      const newProductIds = new Set(productINV.map(p => p.id));
-      return filteredProducts.filter(p => !newProductIds.has(p.id));
+      return applyFilters(productINV);
     } else {
       // All products
-      return [...filteredProducts];
+      return filteredProducts;
     }
-  }, [currentTab, filteredProducts, productINV]);
+  }, [currentTab, filteredProducts, productINV, searchTerm, selectedCategories, minPrice, maxPrice, sortOption]);
 
   // Pagination logic
   const totalPages = Math.ceil(tabFilteredProducts.length / itemsPerPage);
@@ -410,7 +466,7 @@ const ProduitsPage = () => {
 
         {/* ➡️ Contenu Principal */}
         <main className="lg:col-span-3">
-          {/* Tabs for New, Old, All Products */}
+          {/* Tabs for New and All Products */}
           <div className="flex justify-center mb-8">
             <div className="bg-white rounded-full p-1 shadow-md border">
               <button
@@ -422,16 +478,6 @@ const ProduitsPage = () => {
                 }`}
               >
                 Nouveaux Produits
-              </button>
-              <button
-                onClick={() => setCurrentTab('old')}
-                className={`px-6 py-2 rounded-full font-medium transition-colors ${
-                  currentTab === 'old'
-                    ? 'bg-orange-500 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                Anciens Produits
               </button>
               <button
                 onClick={() => setCurrentTab('all')}
@@ -451,35 +497,58 @@ const ProduitsPage = () => {
             <>
               <h2 className="text-xl font-bold tracking-tight text-gray-900 mb-6 border-b pb-2">NOUVEAUX PRODUITS</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                {paginatedProducts.map((p, idx) => (
-                  <div key={idx} className='rounded-2xl hover:scale-102 hover:shadow-2xl hover:cursor-pointer bg-amber-100 shadow-md border border-gray-100 text-left flex flex-col transition-all duration-300'>
-                    <div className='relative'>
-                      <div className='absolute top-2 -right-2 bg-yellow-300 rotate-12 p-1 px-3 rounded-md shadow-sm text-xs font-bold animate-pulse'>
-                        Nouveau
-                      </div>
-                      <img src={p.image || p.Image || p.Imagee || "images/Card.jpg"} alt={p.name || p.nom} className='w-full h-48 rounded-t-2xl object-cover' />
-                    </div>
-                    <div className='p-4 flex flex-col gap-3 grow'>
-                      <div>
-                        <div className='text-xl font-bold'>{p.name || p.nom}</div>
-                        <div className='text-sm font-light text-gray-700 line-clamp-2'>{p.description || p.Presentation}</div>
-                      </div>
-                      <div className='mt-auto flex justify-between items-end'>
-                        <div>
-                          <div className="flex mb-1">
-                            {[...Array(5)].map((_, i) => (
-                              <FaStar key={i} className="text-yellow-400 w-3 h-3" />
-                            ))}
+                {paginatedProducts.map((p, idx) => {
+                  // Price formatter for new products
+                  const formatPriceApiNew = (price) => {
+                    if (typeof price === 'number') {
+                      return price.toFixed(2).replace('.', ',') + ' Ar';
+                    }
+                    return price;
+                  };
+                  const isOnPromoNew = p.promo_active && (!p.promo_expiration || new Date(p.promo_expiration) > new Date());
+                  const originalPriceNew = parseFloat(p.price || p.prix || 0);
+                  const discountPercentNew = isOnPromoNew && p.promo_price !== null && parseFloat(p.promo_price) < originalPriceNew ? Math.round(((originalPriceNew - parseFloat(p.promo_price)) / originalPriceNew) * 100) : 0;
+                  return (
+                    <div key={idx} className='group relative hover:shadow-2xl hover:scale-105 hover:cursor-pointer cursor-pointer max-w-2xs rounded-3xl bg-gradient-to-br from-amber-50 via-amber-100 to-orange-100 shadow-xl border border-amber-200 text-left flex flex-col transition-all duration-700 hover:-translate-y-3 overflow-hidden backdrop-blur-sm'>
+                      <div className='relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-amber-200 to-orange-200'>
+                        <div className='absolute top-2 -right-2 bg-gradient-to-r from-yellow-300 to-yellow-400 rotate-12 p-1 px-3 rounded-md shadow-sm text-xs font-bold animate-pulse'>
+                          Nouveau
+                        </div>
+                        {isOnPromoNew && discountPercentNew > 0 && (
+                          <div className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
+                            -{discountPercentNew}%
                           </div>
-                          <div className='font-semibold text-xl'>{p.price || p.prix} Ar</div>
+                        )}
+                        {isOnPromoNew && (
+                          <div className="absolute bottom-2 left-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                            En Promotion
+                          </div>
+                        )}
+                        <img src={p.image ? `${api.defaults.baseURL}${p.image}` : "images/Card.jpg"} alt={p.name || p.nom} className='w-full h-48 rounded-t-2xl object-cover group-hover:scale-110 transition-transform duration-700' />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      </div>
+                      <div className='p-4 flex flex-col gap-3 grow bg-amber-50/80 backdrop-blur-sm'>
+                        <div>
+                          <div className='text-xl font-bold bg-gradient-to-r from-amber-800 to-orange-600 bg-clip-text text-transparent'>{p.name || p.nom}</div>
+                          <div className='text-sm font-light text-gray-700 line-clamp-2'>{p.description || p.Presentation}</div>
                         </div>
-                        <div className='flex flex-col gap-2'>
-                          <Link className="btn bg-stone-900 p-2 px-4 border-0 rounded-full text-white text-xs text-center" to={"/produit/" + p.id}>Voir</Link>
+                        <div className='mt-auto flex justify-between items-end'>
+                          <div>
+                            <div className='text-sm text-gray-600 mb-2'>
+                              Avis: {p.nombreAvisParProduit || 0}
+                            </div>
+                            <div className='font-semibold text-xl bg-gradient-to-r from-amber-800 to-orange-600 bg-clip-text text-transparent'>
+                              {formatPriceApiNew(originalPriceNew)}
+                            </div>
+                          </div>
+                          <div className='flex flex-col gap-2'>
+                            <Link className="btn bg-gradient-to-r from-stone-800 to-stone-900 p-2 px-4 border-0 rounded-full text-white text-xs text-center hover:from-stone-900 hover:to-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 backdrop-blur-sm" to={`/produit?id=${p.id}`}>Voir</Link>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}

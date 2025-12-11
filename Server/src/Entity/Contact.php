@@ -14,22 +14,34 @@ class Contact
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'contacts')]
-    private ?CLient $id_client = null;
+    private ?Client $id_client = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $messages = null;
+    #[ORM\Column(length: 1000)]
+    private ?string $message = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $created_At = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $sujet = null;
 
     #[ORM\Column(length: 255)]
     private ?string $email = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $nom = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $prenom = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $address = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $phoneNumber = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $operator = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $agreeToPolicies = null;
 
     public function getId(): ?int
     {
@@ -48,14 +60,14 @@ class Contact
         return $this;
     }
 
-    public function getMessages(): ?string
+    public function getMessage(): ?string
     {
-        return $this->messages;
+        return $this->message;
     }
 
-    public function setMessages(string $messages): static
+    public function setMessage(string $message): static
     {
-        $this->messages = $messages;
+        $this->message = $message;
 
         return $this;
     }
@@ -68,18 +80,6 @@ class Contact
     public function setCreatedAt(\DateTimeImmutable $created_At): static
     {
         $this->created_At = $created_At;
-
-        return $this;
-    }
-
-    public function getSujet(): ?string
-    {
-        return $this->sujet;
-    }
-
-    public function setSujet(string $sujet): static
-    {
-        $this->sujet = $sujet;
 
         return $this;
     }
@@ -104,6 +104,66 @@ class Contact
     public function setNom(?string $nom): static
     {
         $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getPrenom(): ?string
+    {
+        return $this->prenom;
+    }
+
+    public function setPrenom(?string $prenom): static
+    {
+        $this->prenom = $prenom;
+
+        return $this;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?string $address): static
+    {
+        $this->address = $address;
+
+        return $this;
+    }
+
+    public function getPhoneNumber(): ?string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(?string $phoneNumber): static
+    {
+        $this->phoneNumber = $phoneNumber;
+
+        return $this;
+    }
+
+    public function getOperator(): ?string
+    {
+        return $this->operator;
+    }
+
+    public function setOperator(?string $operator): static
+    {
+        $this->operator = $operator;
+
+        return $this;
+    }
+
+    public function getAgreeToPolicies(): ?bool
+    {
+        return $this->agreeToPolicies;
+    }
+
+    public function setAgreeToPolicies(?bool $agreeToPolicies): static
+    {
+        $this->agreeToPolicies = $agreeToPolicies;
 
         return $this;
     }

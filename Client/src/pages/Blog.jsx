@@ -82,9 +82,10 @@ const BlogPage = () => {
     const fetchArticles = async () => {
       try {
         setLoading(true);
-        let endpoint = 'articles';
+        let endpoint = 'api/articles';
         const params = new URLSearchParams();
         if (searchTerm) params.append('q', searchTerm);
+        
         if (selectedAuthor) params.append('auteur', selectedAuthor);
         if (filterTitre) params.append('titre', filterTitre);
         if (filterDateFrom) params.append('date_from', filterDateFrom);

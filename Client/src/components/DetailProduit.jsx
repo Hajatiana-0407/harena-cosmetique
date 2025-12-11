@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../API/url';
 import { RatingStars } from './Avis';
+import ReviewForm from './ReviewForm';
 
 // Composant pour afficher une étoile remplie ou vide
 const FilledStarSVG = ({ filled }) => (
@@ -93,7 +94,8 @@ const defaultTabsContent = {
 
 // --- Composant Principal de la Fiche Technique ---
 const DetailProduit = ({ id: propId }) => {
-  const { id: paramId } = useParams();
+  const [searchParams] = useSearchParams();
+  const paramId = searchParams.get('id');
   const id = propId || paramId;
 
   const [quantity, setQuantity] = useState(1);
@@ -123,7 +125,7 @@ const DetailProduit = ({ id: propId }) => {
       newFavorites = [...favorites, {
         id: product.id,
         name: dataTitle,
-        price: dataPrice,
+        price: parseFloat(dataPrice) || 0,
         imageUrl: mainImage,
         description: product?.description || 'Description non disponible',
       }];
@@ -196,7 +198,7 @@ const DetailProduit = ({ id: propId }) => {
       cart.push({
         id: product.id,
         name: dataTitle,
-        price: dataPrice,
+        price: parseFloat(dataPrice) || 0,
         categorie: dataCategorie,
         stock: dataStock,
         imageUrl: mainImage,
@@ -216,10 +218,10 @@ const DetailProduit = ({ id: propId }) => {
   const dataPrice = product?.prix || product?.price || 0;
   const dataCategorie = product?.id_categorie?.nom || product?.Categorie || 'Catégorie non disponible';
   const dataStock = product?.stock || product?.Stock || 0;
-  const mainImage = product?.image || product?.photo || 'image/heros.jpg';
-  const image_mini1 = product?.image_mini1 || product?.photo || 'image/beauty.jpg';
-  const image_mini2 = product?.image_mini2 || product?.photo || 'image/beauty.jpg';
-  const image_mini3 = product?.image_mini3 || product?.photo || 'image/beauty.jpg';
+  const mainImage = product?.image ? `${api.defaults.baseURL}${product.image}` : '/image/beauty.jpg';
+  const image_mini1 = product?.image_mini1 ? `${api.defaults.baseURL}${product.image_mini1}` : '/image/beauty.jpg';
+  const image_mini2 = product?.image_mini2 ? `${api.defaults.baseURL}${product.image_mini2}` : '/image/beauty.jpg';
+  const image_mini3 = product?.image_mini3 ? `${api.defaults.baseURL}${product.image_mini3}` : '/image/beauty.jpg';
 
   return (
     <div className="max-w-7xl mx-auto bg-white font-sans shadow-2xl rounded-xl overflow-hidden">
@@ -230,7 +232,7 @@ const DetailProduit = ({ id: propId }) => {
         <div className="p-4">Chargement...</div>
       )}
       {/* SECTION HAUTE : Image et Informations d'Achat (Grille 2 colonnes) */}
-      <div className="grid lg:grid-cols-2 gap-12 p-6 md:p-12 border-b border-gray-100">
+      <div className="grid lg:grid-cols-2 gap-8 p-4 md:p-8 border-b border-gray-100">
 
         {/* Colonne 1: Galerie d'images */}
         <div className="flex flex-col items-center">
@@ -239,7 +241,7 @@ const DetailProduit = ({ id: propId }) => {
                 <img
                     src={mainImage}
                     alt={dataTitle}
-                    className="w-full h-100 object-cover rounded-lg shadow-xl hover:shadow-2xl transition duration-300"
+                    className="w-full h-96 object-cover rounded-lg shadow-xl hover:shadow-2xl transition duration-300"
                 />
             </div>
 
@@ -270,7 +272,7 @@ const DetailProduit = ({ id: propId }) => {
         </div>
 
         {/* Colonne 2: Informations Produit & CTA */}
-        <div className="space-y-6 text-left">
+        <div className="space-y-4 text-left">
 
           <h1 className="text-4xl font-extrabold leading-snug" style={{ color: COLOR_TEXT }}>
             {dataTitle}
@@ -345,24 +347,6 @@ const DetailProduit = ({ id: propId }) => {
                     <span className="text-xl">+</span> <span className="ml-2 uppercase tracking-wide">Ajouter au panier</span>
 
                 </button>
-                <Link
-                  to="/payer"
-                  className="
-                    inline-block
-                    px-6 py-3
-                    bg-[#5C4033]
-                    text-white
-                    font-semibold
-                    rounded-lg
-                    shadow-md
-                    hover:bg-[#7B4B3A]
-                    transition-colors
-                    duration-300
-                    text-center
-                  "
-                >
-                  💳 Payer avec PAPI
-                </Link>
               </div>
               <p className="text-sm text-gray-500 pt-2">Livraison offerte dès 20.000 Ar d'achat.</p>
           </div>
@@ -398,7 +382,7 @@ const DetailProduit = ({ id: propId }) => {
       </div>
 
       {/* SECTION AVIS CLIENTS */}
-      <div className="p-6 md:p-12 border-t border-gray-100">
+      <div className="p-4 md:p-8 border-t border-gray-100">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-4" style={{ color: COLOR_TEXT }}>
             Avis clients ({reviews.length > 0 ? reviews.length : 0})
@@ -408,6 +392,21 @@ const DetailProduit = ({ id: propId }) => {
             <span className="text-gray-600">Basé sur {reviews.length > 0 ? reviews.length : 0} avis</span>
           </div>
         </div>
+
+        {/* Formulaire d'avis */}
+        <ReviewForm productId={product?.id} onReviewSubmitted={() => {
+          // Recharger les avis après soumission
+          if (product?.id) {
+            (async () => {
+              try {
+                const { data } = await api.get(`/avis/produit/${product.id}`);
+                setReviews(data);
+              } catch (err) {
+                console.log('Erreur chargement avis:', err);
+              }
+            })();
+          }
+        }} />
 
         {/* Grille des avis */}
         {reviews.length > 0 ? (
