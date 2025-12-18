@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Produits de la Commande {{ commande.id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .client-info { margin-bottom: 20px; }
+        .client-info p { margin: 5px 0; }
+        @media print {
+            body { margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Produits Vendus par le Client</h1>
+
+    <div class="client-info">
+        <h2>Informations de la Commande</h2>
+        <p><strong>ID Commande:</strong> {{ commande.id }}</p>
+        <p><strong>Client:</strong> {{ commande.idClient ? commande.idClient.nom : 'N/A' }}</p>
+        <p><strong>Date de Commande:</strong> {{ commande.createdAt ? commande.createdAt.format('d/m/Y H:i') : 'N/A' }}</p>
+        <p><strong>Total:</strong> {{ commande.total }} MGA</p>
+        <p><strong>Statut:</strong> {{ commande.statut }}</p>
+    </div>
+
+    <h2>Articles</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Nom du Produit</th>
+                <th>Quantité</th>
+                <th>Prix Unitaire</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in commande.items %}
+                <tr>
+                    <td>{{ item.nom ?? 'N/A' }}</td>
+                    <td>{{ item.quantite ?? 'N/A' }}</td>
+                    <td>{{ item.prix ?? 'N/A' }} MGA</td>
+                    <td>{{ (item.quantite ?? 0) * (item.prix ?? 0) }} MGA</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        window.onload = function() {
+            window.print();
+        };
+    </script>
+</body>
+</html>

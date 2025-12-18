@@ -33,8 +33,9 @@ export default function ContactComponent() {
     console.log('Form data being submitted:', formData);
 
     try {
-      const response = await api.post('api/contact', formData);
-      if (response.data.success) {
+      const response = await api.post('/api/contact', formData);
+      console.log('Contact response:', response);
+      if (response && response.data && response.data.success) {
         setMessage('Message envoyé avec succès !');
         setFormData({
           Nom: '',
@@ -47,10 +48,13 @@ export default function ContactComponent() {
           'agree-to-policies': false,
         });
       } else {
-        setMessage(response.data.message || 'Erreur lors de l\'envoi');
+        const serverMsg = response?.data?.message;
+        setMessage(serverMsg || 'Erreur lors de l\'envoi');
       }
-    } catch {
-      setMessage('Erreur lors de l\'envoi du message');
+    } catch (err) {
+      console.error('Contact submit error:', err);
+      const serverMsg = err?.response?.data?.message || err?.message;
+      setMessage(serverMsg || 'Erreur lors de l\'envoi du message');
     } finally {
       setLoading(false);
     }

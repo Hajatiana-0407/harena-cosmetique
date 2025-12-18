@@ -30,7 +30,7 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
 
     setLoading(true);
     try {
-      const response = await api.post('/api/avis', {
+      const response = await api.post('avis', {
         id_client: client.id,
         id_produit: productId,
         etoiles: rating,

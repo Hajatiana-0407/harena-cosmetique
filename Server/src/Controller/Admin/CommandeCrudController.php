@@ -3,6 +3,9 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Commande;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
@@ -12,6 +15,10 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\ORM\EntityManagerInterface;
+
 
 class CommandeCrudController extends AbstractCrudController
 {
@@ -42,5 +49,32 @@ class CommandeCrudController extends AbstractCrudController
                 ->hideOnForm()
                 ->setFormat('dd/MM/yyyy HH:mm'),
         ];
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        $printAction = Action::new('print', 'Imprimer Produits')
+            ->linkToRoute('admin_commande_print', function (Commande $commande): array {
+                return ['id' => $commande->getId()];
+            })
+            ->setIcon('fa fa-print')
+            ->setCssClass('btn btn-secondary');
+
+        return $actions
+            ->add(Crud::PAGE_DETAIL, $printAction);
+    }
+
+    #[Route('/admin/commande/{id}/print', name: 'admin_commande_print')]
+    public function print(int $id, EntityManagerInterface $entityManager): Response
+    {
+        $commande = $entityManager->getRepository(Commande::class)->find($id);
+
+        if (!$commande) {
+            throw $this->createNotFoundException('Commande non trouvée');
+        }
+
+        return $this->render('admin/commande/print.html.twig', [
+            'commande' => $commande,
+        ]);
     }
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../API/url';
 import { RatingStars } from './Avis';
@@ -94,8 +94,7 @@ const defaultTabsContent = {
 
 // --- Composant Principal de la Fiche Technique ---
 const DetailProduit = ({ id: propId }) => {
-  const [searchParams] = useSearchParams();
-  const paramId = searchParams.get('id');
+  const { id: paramId } = useParams();
   const id = propId || paramId;
 
   const [quantity, setQuantity] = useState(1);

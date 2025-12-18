@@ -162,7 +162,7 @@ const ProductCard = ({ product }) => {
         {/* Buttons with modern design */}
         <div className='flex gap-3'>
           <Link
-            to={`/produit?id=${product.id}`}
+            to={`/produit/${product.id}`}
             className="flex-1 py-3 px-4 text-center bg-gradient-to-r from-stone-800 to-stone-900 text-white rounded-full font-bold hover:from-stone-900 hover:to-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm backdrop-blur-sm"
           >
             <Eye className="inline w-4 h-4 mr-1" /> Voir détails
@@ -542,7 +542,7 @@ const ProduitsPage = () => {
                             </div>
                           </div>
                           <div className='flex flex-col gap-2'>
-                            <Link className="btn bg-gradient-to-r from-stone-800 to-stone-900 p-2 px-4 border-0 rounded-full text-white text-xs text-center hover:from-stone-900 hover:to-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 backdrop-blur-sm" to={`/produit?id=${p.id}`}>Voir</Link>
+                            <Link className="btn bg-gradient-to-r from-stone-800 to-stone-900 p-2 px-4 border-0 rounded-full text-white text-xs text-center hover:from-stone-900 hover:to-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 backdrop-blur-sm" to={`/produit/${p.id}`}>Voir</Link>
                           </div>
                         </div>
                       </div>
