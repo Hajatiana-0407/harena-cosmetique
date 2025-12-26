@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Heart, Eye, Grid, List, Search, ChevronLeft, ChevronRight, Filter, X } from "lucide-react"; // icônes
 import api from "../API/url";
+import { apiIMG } from "../API/pathPicture";
 
 // Carte produit
 function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
@@ -64,14 +65,14 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
     return (
       <div className="group flex items-center bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-2xl hover:border-[#5C4033]/20 transition-all duration-300 mb-4 transform hover:-translate-y-1">
         {/* Image with modern styling */}
-        <div className="w-28 h-28 flex-shrink-0 mr-6 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#5C4033]/5 to-[#8B5E3C]/5">
+        <div className="w-28 h-28 shrink-0 mr-6 relative overflow-hidden rounded-2xl bg-linear-to-br from-[#5C4033]/5 to-[#8B5E3C]/5">
           <img
             className="w-full h-full object-contain rounded-2xl group-hover:scale-110 transition-transform duration-300"
-            src={product.image || "/image/heros.jpg"}
+            src={apiIMG + product.image || "/image/heros.jpg"}
             alt={product.name}
           />
           {product.discount && (
-            <div className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+            <div className="absolute top-2 left-2 bg-linear-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
               -{product.discount}%
             </div>
           )}
@@ -93,7 +94,7 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
             <p className="text-sm font-semibold text-orange-600">{product.rating}</p>
             <p className="text-sm text-gray-500">({product.reviews} avis)</p>
           </div>
-          <p className="text-3xl font-black text-[#5C4033] mt-3 bg-gradient-to-r from-[#5C4033] to-[#8B5E3C] bg-clip-text">
+          <p className="text-3xl font-black text-[#5C4033] mt-3 bg-linear-to-r from-[#5C4033] to-[#8B5E3C] bg-clip-text">
             {product.price} Ar
           </p>
         </div>
@@ -115,13 +116,13 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
           </button>
           <a
             href={`/produit?id=${product.id}`}
-            className="rounded-xl bg-gradient-to-r from-[#5C4033] to-[#8B5E3C] px-6 py-3 text-sm font-bold text-white hover:from-[#8B5E3C] hover:to-[#5C4033] text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="rounded-xl bg-linear-to-r from-[#5C4033] to-[#8B5E3C] px-6 py-3 text-sm font-bold text-white hover:from-[#8B5E3C] hover:to-[#5C4033] text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >
             Voir détails
           </a>
           <button
             onClick={handleAddToCart}
-            className="rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-6 py-3 text-sm font-bold text-white hover:from-red-500 hover:to-orange-500 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="rounded-xl bg-linear-to-r from-orange-500 to-red-500 px-6 py-3 text-sm font-bold text-white hover:from-red-500 hover:to-orange-500 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >
             🛒 Ajouter
           </button>
@@ -132,7 +133,7 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
 
   // Vue grille (par défaut) - Modern design
   return (
-    <div className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-lg h-[480px] flex flex-col justify-between hover:shadow-2xl hover:border-[#5C4033]/30 transition-all duration-500 transform hover:-translate-y-2 ">
+    <div className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-lg h-120 flex flex-col justify-between hover:shadow-2xl hover:border-[#5C4033]/30 transition-all duration-500 transform hover:-translate-y-2 ">
       {/* Icônes favoris et voir - Modern floating buttons */}
       <div className="absolute top-4 right-4 flex gap-2 z-10">
         <button
@@ -151,14 +152,14 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
       </div>
 
       {/* Image with modern container */}
-      <div className="h-48 w-full flex items-center justify-center relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#5C4033]/5 to-[#8B5E3C]/5">
+      <div className="h-48 w-full flex items-center justify-center relative overflow-hidden rounded-2xl bg-linear-to-br from-[#5C4033]/5 to-[#8B5E3C]/5">
         <img
           className="h-full object-contain rounded-2xl group-hover:scale-110 transition-transform duration-500"
-          src={product.image || "/image/heros.jpg"}
+          src={apiIMG + product.image || "/image/heros.jpg"}
           alt={product.name}
         />
         {product.discount && (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
+          <div className="absolute top-3 left-3 bg-linear-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
             -{product.discount}%
           </div>
         )}
@@ -168,7 +169,7 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
       <div className="pt-6 flex flex-col flex-1 justify-between">
         {/* Category badge */}
         <div className="flex justify-between items-start mb-3">
-          <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#5C4033]/10 to-[#8B5E3C]/10 text-xs font-bold text-[#5C4033] uppercase tracking-wide">
+          <span className="px-3 py-1 rounded-full bg-linear-to-r from-[#5C4033]/10 to-[#8B5E3C]/10 text-xs font-bold text-[#5C4033] uppercase tracking-wide">
             {product.category}
           </span>
         </div>
@@ -193,19 +194,19 @@ function ProductCard({ product, viewMode, onAddToCart, onToggleFavorite }) {
 
         {/* Prix + boutons with modern design */}
         <div className="mt-6 flex flex-col gap-3">
-          <p className="text-3xl font-black text-[#5C4033] bg-gradient-to-r from-[#5C4033] to-[#8B5E3C] bg-clip-text ">
+          <p className="text-3xl font-black text-[#5C4033] bg-linear-to-r from-[#5C4033] to-[#8B5E3C] bg-clip-text ">
             {product.price} Ar
           </p>
           <div className="flex gap-3">
             <a
               href={`/produit?id=${product.id}`}
-              className="flex-1 rounded-xl bg-gradient-to-r from-[#5C4033] to-[#8B5E3C] py-3 text-sm font-bold text-white hover:from-[#8B5E3C] hover:to-[#5C4033] text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="flex-1 rounded-xl bg-linear-to-r from-[#5C4033] to-[#8B5E3C] py-3 text-sm font-bold text-white hover:from-[#8B5E3C] hover:to-[#5C4033] text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               👁️ Voir
             </a>
             <button
               onClick={handleAddToCart}
-              className="flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 py-3 text-sm font-bold text-white hover:from-red-500 hover:to-orange-500 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="flex-1 rounded-xl bg-linear-to-r from-orange-500 to-red-500 py-3 text-sm font-bold text-white hover:from-red-500 hover:to-orange-500 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               🛒 Ajouter
             </button>
@@ -328,8 +329,8 @@ export default function Gallery() {
   };
 
   return (
-    <section className="bg-gray-50 p-10 py-8 pt-20">
-      <div className="mx-auto max-w-screen-xl px-4 ">
+    <section className="bg-gray-50 p-10 py-8">
+      <div className="mx-auto max-w-7xl px-4 ">
         {/* Header */}
         <div className="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
           {error && (
@@ -422,7 +423,7 @@ export default function Gallery() {
           </div>
         )}
 
-        <div className="text-left text-stone-800 mb-5 mt-5 pl-5 min-h-[3rem]">
+        <div className="text-left text-stone-800 mb-5 mt-5 pl-5 min-h-12">
           Découvrez notre gamme complète de produits naturels, conçus pour votre bien-être et celui de la planète.
         </div>
 

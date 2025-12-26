@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { apiIMG } from '../API/pathPicture';
+import Header from './Headers';
+
 
 export default function DetailBlog() {
   const [article, setArticle] = useState(null);
@@ -38,15 +41,11 @@ export default function DetailBlog() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fdf6ec] py-10 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#fdf6ec]">
+      <Header/>
+      <div className="max-w-4xl mx-auto py-5">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <a href="/blog" className="text-[#6b4226] hover:text-[#8b5e3c] transition-colors">
-              ← Retour au blog
-            </a>
-          </div>
           <h1 className="text-3xl md:text-4xl font-bold text-[#5C4033] mb-4 leading-tight">
             {article.titre}
           </h1>
@@ -64,7 +63,7 @@ export default function DetailBlog() {
         {/* Image principale */}
         <div className="mb-8">
           <img
-            src={article.image}
+            src={apiIMG + article.image}
             alt={article.titre}
             className="w-full h-64 md:h-96 object-cover rounded-xl shadow-lg"
           />

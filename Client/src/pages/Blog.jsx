@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Filter } from "lucide-react";
-import Pagination from "../components/Pagination";
 import api from "../API/url";
+import { apiIMG } from "../API/pathPicture";
+
 
 const ScrollFadeIn = ({ children, direction = 'up', delay = 0, threshold = 0.1 }) => {
     const ref = useRef(null);
@@ -130,14 +131,15 @@ const BlogPage = () => {
   }, [searchTerm, selectedAuthor]);
 
   
-  // Couleurs de votre thème pour le style
-  const primaryColor = 'text-[#6b4226]'; 
-  const accentButton = 'bg-[#8b5e3c] hover:bg-[#6b4226]';
-  const lightAccent = 'text-[#8b5e3c]';
+  // Modern color palette
+  const primaryColor = 'text-slate-900';
+  const accentButton = 'bg-blue-600 hover:bg-blue-700';
+  const lightAccent = 'text-blue-600';
 
 
   return (
-    <div className="p-4 max-w-5xl mx-auto bg-[#fdf6ec]">
+    <div className="min-h-screen bg-slate-50 pt-8 pb-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       
       {/* Barre de recherche et En-tête (Animation d'apparition globale) */}
       <ScrollFadeIn direction='up' delay={0} threshold={0.1}>
@@ -155,11 +157,11 @@ const BlogPage = () => {
           </div>
 
           {/* Barre de recherche principale */}
-          <div className="flex items-center border border-[#d4bfa4] rounded-full px-6 py-3 w-full bg-white shadow-lg">
+          <div className="flex items-center border border-slate-300 rounded-full px-6 py-2 w-full bg-white shadow-lg">
             <input
               type="text"
               placeholder="RECHERCHER UN ARTICLE..."
-              className={`flex-grow outline-none text-base bg-transparent ${primaryColor} placeholder:text-stone-400`}
+              className={`grow outline-none text-base bg-transparent ${primaryColor} placeholder:text-slate-400`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -172,7 +174,7 @@ const BlogPage = () => {
 
           {/* Panel des filtres avancés (collapsible) */}
           <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showFilters ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-            <div className="bg-white rounded-2xl shadow-xl border border-stone-100 p-6">
+            <div className="bg-white rounded-2xl shadow-2xl border border-stone-100 p-2">
               <h3 className={`font-semibold text-lg mb-4 ${primaryColor}`}>Filtres avancés</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 {/* Filtre Auteur */}
@@ -181,7 +183,7 @@ const BlogPage = () => {
                   <select
                     value={selectedAuthor}
                     onChange={(e) => setSelectedAuthor(e.target.value)}
-                    className={`w-full p-3 border border-[#d4bfa4] rounded-xl bg-stone-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-[#8b5e3c]/20 focus:border-[#8b5e3c] transition-all`}
+                    className={`w-full p-3 border border-slate-300 rounded-xl bg-slate-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all`}
                   >
                     <option value="">Tous les auteurs</option>
                     {authors.map((author) => (
@@ -196,7 +198,7 @@ const BlogPage = () => {
                   <input
                     type="text"
                     placeholder="Rechercher par titre..."
-                    className={`w-full p-3 border border-[#d4bfa4] rounded-xl bg-stone-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-[#8b5e3c]/20 focus:border-[#8b5e3c] transition-all`}
+                    className={`w-full p-3 border border-slate-300 rounded-xl bg-slate-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all`}
                     value={filterTitre}
                     onChange={(e) => setFilterTitre(e.target.value)}
                   />
@@ -207,7 +209,7 @@ const BlogPage = () => {
                   <label className={`text-sm font-medium ${primaryColor}`}>Date de début</label>
                   <input
                     type="date"
-                    className={`w-full p-3 border border-[#d4bfa4] rounded-xl bg-stone-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-[#8b5e3c]/20 focus:border-[#8b5e3c] transition-all`}
+                    className={`w-full p-3 border border-slate-300 rounded-xl bg-slate-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all`}
                     value={filterDateFrom}
                     onChange={(e) => setFilterDateFrom(e.target.value)}
                   />
@@ -218,7 +220,7 @@ const BlogPage = () => {
                   <label className={`text-sm font-medium ${primaryColor}`}>Date de fin</label>
                   <input
                     type="date"
-                    className={`w-full p-3 border border-[#d4bfa4] rounded-xl bg-stone-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-[#8b5e3c]/20 focus:border-[#8b5e3c] transition-all`}
+                    className={`w-full p-3 border border-slate-300 rounded-xl bg-slate-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all`}
                     value={filterDateTo}
                     onChange={(e) => setFilterDateTo(e.target.value)}
                   />
@@ -230,7 +232,7 @@ const BlogPage = () => {
                   <select
                     value={filterStars}
                     onChange={(e) => setFilterStars(e.target.value)}
-                    className={`w-full p-3 border border-[#d4bfa4] rounded-xl bg-stone-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-[#8b5e3c]/20 focus:border-[#8b5e3c] transition-all`}
+                    className={`w-full p-3 border border-slate-300 rounded-xl bg-slate-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all`}
                   >
                     <option value="">Toutes les étoiles</option>
                     <option value="5">⭐⭐⭐⭐⭐ 5 étoiles</option>
@@ -253,7 +255,7 @@ const BlogPage = () => {
                     setFilterDateTo('');
                     setFilterStars('');
                   }}
-                  className={`flex items-center gap-2 px-6 py-2 rounded-full border-2 border-[#8b5e3c] text-[#8b5e3c] hover:bg-[#8b5e3c] hover:text-white transition-all duration-300 font-medium`}
+                  className={`flex items-center gap-2 px-6 py-2 rounded-full border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white transition-all duration-300 font-medium`}
                 >
                   <Filter className="w-4 h-4" />
                   Réinitialiser les filtres
@@ -280,7 +282,7 @@ const BlogPage = () => {
             <ScrollFadeIn key={produit.id || index} direction='up' delay={100 * (index + 1)} threshold={0.3}>
               <div className="flex flex-col md:flex-row items-start bg-white shadow-lg rounded-xl p-4 transition-transform hover:scale-[1.005] duration-300 border border-stone-100">
                 <img
-                  src={produit.image}
+                  src={apiIMG + produit.image}
                   alt={produit.titre || 'Article'}
                   className="w-full h-48 md:w-56 md:h-32 object-cover rounded-lg mb-3 md:mb-0"
                 />
@@ -338,6 +340,7 @@ const BlogPage = () => {
              <Pagination/>
           </div>
       </ScrollFadeIn> */}
+      </div>
     </div>
   );
 };

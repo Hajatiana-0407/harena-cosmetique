@@ -6,6 +6,7 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
 
   const [client, setClient] = useState(null);
@@ -27,6 +28,18 @@ export default function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 0);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
 
@@ -44,7 +57,7 @@ export default function Header() {
   };
 
   return (
-    <header className="w-full bg-[#fdf6ec] shadow-md sticky top-0 z-50">
+    <header className={`w-full sticky top-0 z-50 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-lg' : 'bg-[#fdf6ec] shadow-md'}`}>
       <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between h-20">
         {/* Logo */}
         <div className="flex-shrink-0">

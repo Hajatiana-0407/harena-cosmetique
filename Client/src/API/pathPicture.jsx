@@ -1,0 +1,1 @@
+export const apiIMG = import.meta.env.VITE_API_URL + "/image/"

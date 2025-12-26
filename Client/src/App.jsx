@@ -62,7 +62,7 @@ function Layout({ children }) {
   return (
     <>
       <Headers />
-      <main>{children}</main>
+      <main className='scroll!'>{children}</main>
       <Footer />
     </>
   );
