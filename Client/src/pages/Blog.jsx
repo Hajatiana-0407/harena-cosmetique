@@ -1,345 +1,216 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Filter } from "lucide-react";
+import { Filter, Search, X, Calendar, User, Star } from "lucide-react";
 import api from "../API/url";
 import { apiIMG } from "../API/pathPicture";
 
-
-const ScrollFadeIn = ({ children, direction = 'up', delay = 0, threshold = 0.1 }) => {
-    const ref = useRef(null);
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                    // Arrêter d'observer une fois l'élément apparu
-                    observer.unobserve(entry.target); 
-                }
-            },
-      
-            { threshold: threshold } 
-        );
-
-        if (ref.current) {
-            observer.observe(ref.current);
-        }
-
-        return () => {
-            if (ref.current) {
-                observer.unobserve(ref.current);
-            }
-        };
-    }, [threshold]);
-
-    // Détermine la classe de translation initiale (invisible)
-    const getInitialTranslate = () => {
-        switch (direction) {
-            case 'left': return 'translate-x-[-50px]';
-            case 'right': return 'translate-x-[50px]';
-            case 'up':
-            default: return 'translate-y-[30px]';
-        }
-    };
-    
-    // Classes de transition et d'état
-    const classes = `
-        transition-all duration-100 ease-out 
-        ${isVisible ? 'opacity-100 translate-x-0 translate-y-0' : `opacity-0 ${getInitialTranslate()}`}
-    `;
-
-    // Le style 'transition-delay' est appliqué pour stagger les animations
-    const style = { transitionDelay: `${delay}ms` };
-
-    return (
-        <div ref={ref} className={classes} style={style}>
-            {children}
-        </div>
-    );
+// --- UTILITAIRE DE NETTOYAGE HTML ---
+const stripHtml = (html) => {
+  if (!html) return "";
+  return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
 };
 
+// --- COMPOSANT D'ANIMATION ---
+const ScrollFadeIn = ({ children, direction = 'up', delay = 0, threshold = 0.1 }) => {
+  const ref = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
 
-// ====================================================================
-// COMPOSANT PRINCIPAL BLOG
-// ====================================================================
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: threshold }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => { if (ref.current) observer.unobserve(ref.current); };
+  }, [threshold]);
+
+  const getInitialTranslate = () => {
+    switch (direction) {
+      case 'left': return 'translate-x-[-30px]';
+      case 'right': return 'translate-x-[30px]';
+      default: return 'translate-y-[20px]';
+    }
+  };
+
+  return (
+    <div 
+      ref={ref} 
+      className={`transition-all duration-700 ease-out h-full ${isVisible ? 'opacity-100 translate-x-0 translate-y-0' : `opacity-0 ${getInitialTranslate()}`}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+};
 
 const BlogPage = () => {
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAuthor, setSelectedAuthor] = useState('');
   const [authors, setAuthors] = useState([]);
-  const [filterTitre, setFilterTitre] = useState('');
-  const [filterDateFrom, setFilterDateFrom] = useState('');
-  const [filterDateTo, setFilterDateTo] = useState('');
-  const [filterStars, setFilterStars] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+
+  const theme = {
+    bg: 'bg-[#FAF9F6]',
+    textPrimary: 'text-[#4A3728]',
+    textMuted: 'text-[#8C7E6A]',
+    accent: 'bg-[#C5A059]',
+    accentText: 'text-[#C5A059]',
+    card: 'bg-white'
+  };
 
   useEffect(() => {
     let isMounted = true;
     const fetchArticles = async () => {
       try {
         setLoading(true);
-        let endpoint = 'api/articles';
         const params = new URLSearchParams();
         if (searchTerm) params.append('q', searchTerm);
-        
         if (selectedAuthor) params.append('auteur', selectedAuthor);
-        if (filterTitre) params.append('titre', filterTitre);
-        if (filterDateFrom) params.append('date_from', filterDateFrom);
-        if (filterDateTo) params.append('date_to', filterDateTo);
-        if (filterStars) params.append('stars', filterStars);
-        if (params.toString()) endpoint += '?' + params.toString();
-
-        const { data } = await api.get(endpoint);
+        
+        const { data } = await api.get(`api/articles?${params.toString()}`);
         if (!isMounted) return;
+
         const list = Array.isArray(data) ? data : [];
-        // Normaliser les champs attendus par la carte
         const normalized = list.map((a) => ({
-          id: a.id,
-          titre: a.titre || 'Sans titre',
-          auteur: a.auteur || 'Auteur inconnu',
-          note: 5, // Note par défaut
-          description: a.contenu || 'Pas de description',
-          temps: a.created_At ? new Date(a.created_At).toLocaleDateString('fr-FR') : 'Date inconnue',
-          image: a.image || '/image/beauty.jpg',
+          ...a,
+          titre: stripHtml(a.titre || 'Sans titre'),
+          description: stripHtml(a.contenu || 'Pas de description'),
+          temps: a.created_At ? new Date(a.created_At).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Date inconnue',
+          image: a.image,
+          note: 5
         }));
+        
         setArticles(normalized);
-
-        // Extract unique authors
-        const uniqueAuthors = [...new Set(list.map(a => a.auteur).filter(Boolean))];
-        setAuthors(uniqueAuthors);
-
+        setAuthors([...new Set(list.map(a => a.auteur).filter(Boolean))]);
       } catch (err) {
-        setError(err?.response?.data || err.message);
+        console.error(err);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
-    const timeoutId = setTimeout(() => {
-        fetchArticles();
-    }, 500);
-
-    return () => {
-        isMounted = false;
-        clearTimeout(timeoutId);
-    };
+    const timer = setTimeout(fetchArticles, 400);
+    return () => { isMounted = false; clearTimeout(timer); };
   }, [searchTerm, selectedAuthor]);
 
-  
-  // Modern color palette
-  const primaryColor = 'text-slate-900';
-  const accentButton = 'bg-blue-600 hover:bg-blue-700';
-  const lightAccent = 'text-blue-600';
-
-
   return (
-    <div className="min-h-screen bg-slate-50 pt-8 pb-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      {/* Barre de recherche et En-tête (Animation d'apparition globale) */}
-      <ScrollFadeIn direction='up' delay={0} threshold={0.1}>
-        <div className="flex flex-col gap-6 mb-8">
-          {/* Header avec titre et bouton toggle filtres */}
-          <div className="flex items-center justify-between">
-            <span className={`font-bold text-2xl ${primaryColor}`}>BLOG</span>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full ${accentButton} text-white font-medium transition-all duration-300 hover:shadow-lg`}
-            >
-              <Filter className="w-4 h-4" />
-              {showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
-            </button>
-          </div>
+    <div className={`min-h-screen ${theme.bg} pt-12 pb-24 font-sans`}>
+      <div className="max-w-6xl mx-auto px-6">
+        
+        {/* EN-TÊTE */}
+        <ScrollFadeIn>
+          <div className="text-center mb-12">
+            <span className={`text-[11px] font-bold uppercase tracking-[0.3em] ${theme.accentText} mb-4 block`}>
+              Le Journal d'Harèna
+            </span>
+            <h1 className={`text-4xl md:text-6xl font-serif ${theme.textPrimary} italic mb-10`}>
+              Conseils & rituels de beauté
+            </h1>
 
-          {/* Barre de recherche principale */}
-          <div className="flex items-center border border-slate-300 rounded-full px-6 py-2 w-full bg-white shadow-lg">
-            <input
-              type="text"
-              placeholder="RECHERCHER UN ARTICLE..."
-              className={`grow outline-none text-base bg-transparent ${primaryColor} placeholder:text-slate-400`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button className="btn btn-ghost btn-circle">
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${lightAccent}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Panel des filtres avancés (collapsible) */}
-          <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showFilters ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-            <div className="bg-white rounded-2xl shadow-2xl border border-stone-100 p-2">
-              <h3 className={`font-semibold text-lg mb-4 ${primaryColor}`}>Filtres avancés</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {/* Filtre Auteur */}
-                <div className="space-y-2">
-                  <label className={`text-sm font-medium ${primaryColor}`}>Auteur</label>
-                  <select
-                    value={selectedAuthor}
-                    onChange={(e) => setSelectedAuthor(e.target.value)}
-                    className={`w-full p-3 border border-slate-300 rounded-xl bg-slate-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all`}
-                  >
-                    <option value="">Tous les auteurs</option>
-                    {authors.map((author) => (
-                      <option key={author} value={author}>{author}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Filtre Titre */}
-                <div className="space-y-2">
-                  <label className={`text-sm font-medium ${primaryColor}`}>Titre</label>
-                  <input
-                    type="text"
-                    placeholder="Rechercher par titre..."
-                    className={`w-full p-3 border border-slate-300 rounded-xl bg-slate-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all`}
-                    value={filterTitre}
-                    onChange={(e) => setFilterTitre(e.target.value)}
-                  />
-                </div>
-
-                {/* Filtre Date de début */}
-                <div className="space-y-2">
-                  <label className={`text-sm font-medium ${primaryColor}`}>Date de début</label>
-                  <input
-                    type="date"
-                    className={`w-full p-3 border border-slate-300 rounded-xl bg-slate-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all`}
-                    value={filterDateFrom}
-                    onChange={(e) => setFilterDateFrom(e.target.value)}
-                  />
-                </div>
-
-                {/* Filtre Date de fin */}
-                <div className="space-y-2">
-                  <label className={`text-sm font-medium ${primaryColor}`}>Date de fin</label>
-                  <input
-                    type="date"
-                    className={`w-full p-3 border border-slate-300 rounded-xl bg-slate-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all`}
-                    value={filterDateTo}
-                    onChange={(e) => setFilterDateTo(e.target.value)}
-                  />
-                </div>
-
-                {/* Filtre Étoiles */}
-                <div className="space-y-2">
-                  <label className={`text-sm font-medium ${primaryColor}`}>Évaluation</label>
-                  <select
-                    value={filterStars}
-                    onChange={(e) => setFilterStars(e.target.value)}
-                    className={`w-full p-3 border border-slate-300 rounded-xl bg-slate-50 shadow-sm text-sm ${primaryColor} outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all`}
-                  >
-                    <option value="">Toutes les étoiles</option>
-                    <option value="5">⭐⭐⭐⭐⭐ 5 étoiles</option>
-                    <option value="4">⭐⭐⭐⭐ 4 étoiles</option>
-                    <option value="3">⭐⭐⭐ 3 étoiles</option>
-                    <option value="2">⭐⭐ 2 étoiles</option>
-                    <option value="1">⭐ 1 étoile</option>
-                  </select>
-                </div>
+            <div className="relative max-w-2xl mx-auto">
+              <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+                <Search className={`w-5 h-5 ${theme.textMuted}`} />
               </div>
-
-              {/* Bouton de réinitialisation */}
-              <div className="flex justify-end mt-6">
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedAuthor('');
-                    setFilterTitre('');
-                    setFilterDateFrom('');
-                    setFilterDateTo('');
-                    setFilterStars('');
-                  }}
-                  className={`flex items-center gap-2 px-6 py-2 rounded-full border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white transition-all duration-300 font-medium`}
-                >
-                  <Filter className="w-4 h-4" />
-                  Réinitialiser les filtres
-                </button>
-              </div>
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                className="w-full pl-14 pr-32 py-5 bg-white border border-stone-200 rounded-2xl shadow-sm outline-none focus:ring-4 focus:ring-[#C5A059]/10 transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className={`absolute right-3 top-3 bottom-3 px-5 rounded-xl ${theme.accent} text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2`}
+              >
+                <Filter size={14} /> Filtres
+              </button>
             </div>
           </div>
-        </div>
-      </ScrollFadeIn>
+        </ScrollFadeIn>
 
-      {/* Liste des produits (Animation de cascade) */}
-      <ScrollFadeIn direction='up' delay={0} threshold={0.1}>
-        <h2 className={`font-bold text-left text-lg mb-4 ${primaryColor}`}>Plus récents</h2>
-      </ScrollFadeIn>
-
-      {error && (
-        <p className="text-red-600 text-sm mb-3">Erreur chargement articles: {typeof error === 'object' ? JSON.stringify(error) : error}</p>
-      )}
-      <div className="space-y-4">
-        {articles.length === 0 && !loading ? (
-          <p className="text-center py-10 text-gray-500">Aucun article trouvé</p>
-        ) : (
-          articles.map((produit, index) => (
-            <ScrollFadeIn key={produit.id || index} direction='up' delay={100 * (index + 1)} threshold={0.3}>
-              <div className="flex flex-col md:flex-row items-start bg-white shadow-lg rounded-xl p-4 transition-transform hover:scale-[1.005] duration-300 border border-stone-100">
-                <img
-                  src={apiIMG + produit.image}
-                  alt={produit.titre || 'Article'}
-                  className="w-full h-48 md:w-56 md:h-32 object-cover rounded-lg mb-3 md:mb-0"
-                />
-                <div className="flex-1 md:ml-4 flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-center">
-                      <h3 className={`font-semibold ${lightAccent} text-xl`}>{produit.titre}</h3>
-                      <span className="text-sm text-stone-500">{produit.temps}</span>
+        {/* LISTE DES ARTICLES */}
+        <div className="grid grid-cols-1 gap-10">
+          {loading ? (
+             <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin"></div></div>
+          ) : (
+            articles.map((article, index) => (
+              <ScrollFadeIn key={article.id} delay={index * 50}>
+                <div className="group bg-white rounded-[2rem] overflow-hidden border border-stone-100 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col md:flex-row min-h-[320px]">
+                  
+                  {/* IMAGE SECTION - Fixée pour mobile et desktop */}
+                  <div className="w-full md:w-1/3 relative aspect-video md:aspect-auto overflow-hidden">
+                    <img
+                      src={article.image ? apiIMG + article.image : "/image/beauty.jpg"}
+                      alt={article.titre}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute top-4 left-4">
+                      <span className="px-4 py-1.5 bg-white/90 backdrop-blur rounded-full text-[10px] font-bold uppercase tracking-widest text-[#4A3728]">
+                        Conseils
+                      </span>
                     </div>
-                    <div className="text-amber-500 text-2xl text-left mb-1">
-                      {"★".repeat(produit.note) + "☆".repeat(5 - produit.note)}
-                    </div>
-                    <p className="text-sm text-left text-stone-600 leading-relaxed">{produit.description}</p>
                   </div>
-                  <div className="mt-4 flex">
-                    <button
-                      onClick={() => {
-                        // Store article data in localStorage for DetailBlogs
-                        localStorage.setItem('selectedArticle', JSON.stringify(produit));
-                        navigate('/detail-blog');
-                      }}
-                      className={`${accentButton} cursor-pointer text-white px-5 py-2 rounded-full text-sm font-semibold transition duration-200`}
-                    >
-                      Lire l'article
-                    </button>
+
+                  {/* CONTENT SECTION */}
+                  <div className="w-full md:w-2/3 p-6 md:p-10 flex flex-col">
+                    <div className="flex-grow">
+                      <div className="flex flex-wrap items-center gap-3 mb-4 text-[10px] font-medium text-[#8C7E6A] uppercase tracking-wider">
+                        <span className="flex items-center gap-1.5"><Calendar size={14}/> {article.temps}</span>
+                        <span className="hidden sm:block w-1 h-1 bg-stone-300 rounded-full"></span>
+                        <span className="flex items-center gap-1.5"><User size={14}/> {article.auteur}</span>
+                      </div>
+                      
+                      <h3 className={`text-xl md:text-3xl font-serif ${theme.textPrimary} mb-4 group-hover:text-[#C5A059] transition-colors line-clamp-2`}>
+                        {article.titre}
+                      </h3>
+
+                      <div className="flex gap-0.5 mb-4">
+                        {[...Array(5)].map((_, i) => <Star key={i} size={14} className="fill-[#C5A059] text-[#C5A059]" />)}
+                      </div>
+
+                      <p className={`${theme.textMuted} leading-relaxed text-sm md:text-base line-clamp-3 mb-6 font-light`}>
+                        {article.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-6 border-t border-stone-50 mt-auto flex justify-start">
+                      <button
+                        onClick={() => {
+                          localStorage.setItem('selectedArticle', JSON.stringify(article));
+                          navigate('/detail-blog');
+                        }}
+                        className={`text-[12px] font-bold uppercase tracking-[0.2em] ${theme.textPrimary} flex items-center gap-3 group/btn`}
+                      >
+                        Lire l'article
+                        <span className={`w-8 h-px ${theme.accent} transition-all duration-300 group-hover/btn:w-12`}></span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </ScrollFadeIn>
-          ))
-        )}
-      </div>
-      
-
-      {/* Section Astuces (Animation) */}
-      <ScrollFadeIn direction='up' delay={200} threshold={0.1}>
-        <div className="mt-12 border-t border-[#d4bfa4] pt-8 mb-10">
-          <h2 className={`font-bold text-lg mb-4 ${primaryColor}`}>Astuces & Conseils</h2>
-          <p className="text-base text-stone-600 leading-relaxed font-light">
-            Véritable baume de soin, cette base masque capillaire neutre, certifiée
-            BIO, riche en huiles végétales de Jojoba, Ricin et beurre de Karité,
-            protège, lisse et nourrit vos cheveux. Sa texture souple et légère
-            permet de l’utiliser comme masque cheveux ou comme après-shampoing,
-            pour faciliter le démêlage, apporter brillance, souplesse et douceur à
-            votre chevelure. Elle sera également idéale comme soin sans rinçage
-            pour gainer, nourrir et sublimer vos longueurs et pointes. Utilisée
-            pure ou agrémentée de fragrances, actifs et/ou huiles…
-          </p>
+              </ScrollFadeIn>
+            ))
+          )}
         </div>
-      </ScrollFadeIn>
 
-      {/* Pagination (Animation)
-      <ScrollFadeIn direction='up' delay={300} threshold={0.1}>
-          <div className="mt-8">
-             <Pagination/>
+        {/* FOOTER ASTUCE */}
+        <ScrollFadeIn delay={200}>
+          <div className="mt-20 p-10 rounded-[2.5rem] bg-[#4A3728] text-white relative overflow-hidden">
+            <div className="relative z-10 max-w-2xl">
+              <h2 className="text-2xl font-serif italic mb-4">Le saviez-vous ?</h2>
+              <p className="text-stone-300 text-sm md:text-base leading-relaxed opacity-90 font-light">
+                Le secret d'une peau éclatante réside dans la régularité de vos rituels. Nos produits sont conçus pour agir en harmonie avec le cycle naturel de votre peau.
+              </p>
+            </div>
           </div>
-      </ScrollFadeIn> */}
+        </ScrollFadeIn>
       </div>
     </div>
   );

@@ -30,6 +30,11 @@ class Categorie
     #[Groups(['categorie:read'])]
     private ?string $description = null;
 
+    // Chemin ou nom du fichier image pour la catégorie
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['categorie:read'])]
+    private ?string $image = null;
+
     #[ORM\Column]
     #[Groups(['categorie:read'])]
     private ?\DateTimeImmutable $created_At = null;
@@ -39,7 +44,7 @@ class Categorie
      */
     // C'est la seule relation que nous gardons (cohérente avec Produit::id_categorie)
     #[Groups(['categorie:read'])]
-    #[ORM\OneToMany(targetEntity: Produit::class, mappedBy: 'id_categorie')]
+    #[ORM\OneToMany(targetEntity: Produit::class, mappedBy: 'id_categorie', cascade: ['remove'])]
     private Collection $produits_categorie;
 
     public function __construct()
@@ -86,6 +91,17 @@ class Categorie
     public function setDescription(string $description): static
     {
         $this->description = $description;
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
         return $this;
     }
 

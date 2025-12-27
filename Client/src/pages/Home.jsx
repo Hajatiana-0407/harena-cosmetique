@@ -1,9 +1,8 @@
 
 import Heros from '../components/Heros'
-import Testmonial from "../components/Testmonial";
-import ProductGrid from "../components/ProduitList";
+import AboutPage from "../components/Testmonial";
 import Bestseller from "../components/BestSeller";
-import Banner from "../components/Banner";
+// import Banner from "../components/Banner";
 import Temoin  from "../components/temoin"
 
 function Home() {
@@ -11,9 +10,8 @@ function Home() {
         <div>
             <Heros />
             <Bestseller/>
-            <Testmonial/>
-            <ProductGrid/>
-            <Banner/>
+            <AboutPage/>
+            {/* <Banner/> */}
             <Temoin/>           
         </div>
     )

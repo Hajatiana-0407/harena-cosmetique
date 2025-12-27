@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Search, User, ShoppingBag, Heart, Menu, X, ArrowRight } from "lucide-react";
 import api from '../API/url';
 
 export default function Header() {
@@ -8,8 +9,14 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
-
+  const location = useLocation();
   const [client, setClient] = useState(null);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -18,191 +25,186 @@ export default function Header() {
       setIsLoggedIn(!!parsedClient);
       setClient(parsedClient);
     };
-
     checkAuth();
-
     window.addEventListener('authChange', checkAuth);
-
-    return () => {
-      window.removeEventListener('authChange', checkAuth);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 0);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('authChange', checkAuth);
   }, []);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-
     try {
       const response = await api.get(`/search?q=${encodeURIComponent(searchQuery)}`);
-      // Store search results in localStorage or state for catalogue page
       localStorage.setItem('searchResults', JSON.stringify(response.data));
       localStorage.setItem('searchQuery', searchQuery);
       navigate('/catalogue');
     } catch (error) {
-      console.error('Search error:', error);
-      // Navigate to catalogue anyway, maybe show empty results
       navigate('/catalogue');
     }
   };
 
+  const navLinks = [
+    { name: "ACCUEIL", path: "/" },
+    { name: "CATALOGUE", path: "/catalogue" },
+    { name: "PRODUITS", path: "/produit" },
+    { name: "BLOG", path: "/blog" },
+    { name: "FAQ", path: "/faq" },
+    { name: "A PROPOS", path: "/a-propos" },
+    { name: "CONTACT", path: "/contact" },
+  ];
+
   return (
-    <header className={`w-full sticky top-0 z-50 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-lg' : 'bg-[#fdf6ec] shadow-md'}`}>
-      <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between h-20">
-        {/* Logo */}
-        <div className="flex-shrink-0">
-          <Link to="/" className="flex items-center">
-            <img
-              src="/image/MonLogo.png"
-              alt="Harena Cosmetique Beauté"
-              className="h-12 w-auto"
-            />
-            <div className="text-stone-900 font-bold text-3xl sm:text-2xl">Harena Cosmetique</div>
-          </Link>
-        </div>
+    <>
+      {/* ESPACEUR RÉACTIF : 
+          - h-[70px] sur mobile (correspond au header compact)
+          - lg:h-[130px] sur desktop (quand le menu de navigation apparaît)
+          - Si scrollé sur desktop, on réduit un peu la place
+      */}
+      <div className={`transition-all duration-300 ${scrolled ? "h-17.5 lg:h-25" : "h-17.5 lg:h-32.5"}`} />
 
-        {/* Recherche + icônes */}
-        <div className="flex items-center space-x-4">
-          {/* Recherche */}
-          <div className="relative hidden sm:block">
-            <input
-              type="search"
-              placeholder="Rechercher..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch();
-                }
-              }}
-              className="border border-[#d4bfa4] rounded-full py-1 px-3 pl-9 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] bg-[#fffaf5]"
-            />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a27c56]">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Icônes */}
-          {isLoggedIn ? (
-            <Link to="/compte" className="text-[#6b4226] hover:text-[#8b5e3c] transition">
+      <header 
+        className={`fixed top-0 w-full z-100 transition-all duration-500 border-b ${
+          scrolled 
+            ? "bg-white/95 backdrop-blur-md border-stone-200/50 py-2 shadow-sm" 
+            : "bg-white border-transparent py-4"
+        }`}
+      >
+        <div className="container mx-auto px-4 md:px-10">
+          <div className="flex items-center justify-between">
+            
+            {/* LOGO */}
+            <Link to="/" className="flex items-center group flex-shrink-0">
               <img
-                src="https://127.0.0.1:8000/image/beauty.jpg"
-                alt="Photo de profil"
-                className="w-8 h-8 rounded-full object-cover border-2 border-[#6b4226]"
+                src="/image/MonLogo.png"
+                alt="Logo"
+                className="h-8 md:h-10 w-auto object-contain mr-2 transition-transform duration-500 group-hover:scale-105"
               />
+              <span className="text-stone-900 font-serif text-xl md:text-2xl tracking-tighter uppercase italic">
+                Harena<span className="text-[#8b5e3c]">.</span>
+              </span>
             </Link>
-          ) : (
-            <Link to="/login" className="text-[#6b4226] hover:text-[#8b5e3c] transition">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A9.97 9.97 0 0112 15c2.21 0 4.236.72 5.879 1.929M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </Link>
-          )}
 
-          {isLoggedIn && (
-            <Link to="/panier" className="text-[#6b4226] hover:text-[#8b5e3c] transition relative">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.293 2.293A1 1 0 007 17h12m-9 4a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z" />
-              </svg>
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-            </Link>
-          )}
-
-          <Link to="/favoris" className="text-[#6b4226] hover:text-[#8b5e3c] transition">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          </Link>
-
-          {/* Burger menu mobile */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden text-[#6b4226] hover:text-[#8b5e3c] transition"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div className="h-16 hidden lg:flex justify-center border-t-1 border-b-1 border-amber-700  pt-5">
-        {/* Menu desktop */}
-        <nav className="hidden lg:flex space-x-8 text-sm font-semibold text-[#6b4226]">
-          <Link to="/" className="hover:text-[#8b5e3c] transition">ACCUEIL</Link>
-          <Link to="/catalogue" className="hover:text-[#8b5e3c] transition">CATALOGUE</Link>
-          <Link to="/produit" className="hover:text-[#8b5e3c] transition">PRODUITS</Link>
-          <Link to="/blog" className="hover:text-[#8b5e3c] transition">BLOG</Link>
-          <Link to="/faq" className="hover:text-[#8b5e3c] transition">FAQ</Link>
-          {/* <Link to="/panier" className="hover:text-[#8b5e3c] transition">PANIER</Link> */}
-          <Link to="/a-propos" className="hover:text-[#8b5e3c] transition">A PROPOS</Link>
-          <Link to="/contact" className="hover:text-[#8b5e3c] transition">CONTACT</Link>
-        </nav>
-      </div>
-
-      {/* Menu mobile moderne - Slide-in Sidebar */}
-      <div className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setIsOpen(false)}></div>
-        <div className={`absolute right-0 top-0 h-full w-80 bg-[#fdf6ec] shadow-xl transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          <div className="flex items-center justify-between p-6 border-b border-[#d4bfa4]">
-            <h2 className="text-xl font-bold text-[#6b4226]">Menu</h2>
-            <button onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <nav className="flex flex-col p-6 space-y-4">
-            <Link to="/" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">ACCUEIL</Link>
-            <Link to="/catalogue" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">CATALOGUE</Link>
-            <Link to="/produit" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">PRODUITS</Link>
-            <Link to="/blog" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">BLOG</Link>
-            <Link to="/faq" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">FAQ</Link>
-            <Link to="/a-propos" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2 border-b border-stone-200">A PROPOS</Link>
-            <Link to="/contact" onClick={() => setIsOpen(false)} className="text-[#6b4226] hover:text-[#8b5e3c] transition text-lg font-medium py-2">CONTACT</Link>
-          </nav>
-          {/* Recherche mobile */}
-          <div className="p-6 border-t border-[#d4bfa4]">
-            <div className="relative">
-              <input
-                type="search"
-                placeholder="Rechercher..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch();
-                    setIsOpen(false);
-                  }
-                }}
-                className="w-full border border-[#d4bfa4] rounded-full py-2 px-4 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] bg-[#fffaf5]"
-              />
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a27c56]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+            {/* RECHERCHE - Visible uniquement à partir de MD */}
+            <div className="hidden md:flex flex-1 max-w-md mx-10">
+              <div className="relative w-full group">
+                <input
+                  type="text"
+                  placeholder="Rechercher une essence..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="w-full bg-stone-50 border border-stone-100 rounded-full py-2.5 pl-11 pr-4 text-xs tracking-wide focus:bg-white focus:ring-4 focus:ring-stone-100 focus:border-stone-200 transition-all outline-none"
+                />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-[#8b5e3c] w-4 h-4 transition-colors" />
               </div>
             </div>
+
+            {/* ACTIONS */}
+            <div className="flex items-center space-x-1 md:space-x-4">
+              <Link to="/favoris" className="hidden sm:flex p-2.5 text-stone-600 hover:text-[#8b5e3c] hover:bg-stone-50 rounded-full transition-all">
+                <Heart size={20} strokeWidth={1.5} />
+              </Link>
+
+              {isLoggedIn ? (
+                <div className="flex items-center space-x-3 md:space-x-5">
+                  <Link to="/panier" className="p-2.5 text-stone-600 hover:text-[#8b5e3c] relative">
+                    <ShoppingBag size={20} strokeWidth={1.5} />
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-[#8b5e3c] rounded-full ring-2 ring-white"></span>
+                  </Link>
+                  <Link to="/compte" className="group">
+                    <div className="w-8 h-8 rounded-full border border-stone-200 group-hover:border-[#8b5e3c] transition-all overflow-hidden p-0.5">
+                      <img
+                        src="https://127.0.0.1:8000/image/beauty.jpg"
+                        alt="Profil"
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    </div>
+                  </Link>
+                </div>
+              ) : (
+                <Link to="/login" className="p-2.5 text-stone-600 hover:text-[#8b5e3c] hover:bg-stone-50 rounded-full transition-all">
+                  <User size={20} strokeWidth={1.5} />
+                </Link>
+              )}
+
+              {/* BURGER MOBILE - Caché sur Desktop (lg) */}
+              <button 
+                onClick={() => setIsOpen(true)}
+                className="lg:hidden p-2.5 text-stone-900 bg-stone-50 rounded-full ml-2"
+              >
+                <Menu size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* NAVIGATION DESKTOP - STRICTEMENT CACHÉE SUR MOBILE */}
+          <nav className="hidden lg:flex justify-center mt-4 border-t border-stone-50">
+            <div className="flex space-x-10 py-3">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`text-[10px] font-extrabold tracking-[0.25em] transition-all duration-300 relative group py-1 ${
+                    location.pathname === link.path ? "text-[#8b5e3c]" : "text-stone-400 hover:text-stone-900"
+                  }`}
+                >
+                  {link.name}
+                  <span className={`absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-[2px] bg-[#8b5e3c] transition-all duration-500 rounded-full ${
+                    location.pathname === link.path ? "w-full" : "w-0 group-hover:w-full"
+                  }`}></span>
+                </Link>
+              ))}
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      {/* SIDEBAR MOBILE */}
+      <div className={`fixed inset-0 z-[110] lg:hidden transition-all duration-500 ${isOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}>
+        <div className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" onClick={() => setIsOpen(false)}></div>
+        <div className={`absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white shadow-2xl transform transition-transform duration-500 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between p-6 border-b border-stone-50">
+              <span className="font-serif italic font-bold text-2xl tracking-tighter">Harena<span className="text-[#8b5e3c]">.</span></span>
+              <button onClick={() => setIsOpen(false)} className="p-2 text-stone-400 hover:text-stone-900 transition-colors bg-stone-50 rounded-full">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto py-10 px-8">
+              <div className="space-y-8">
+                {navLinks.map((link, index) => (
+                  <Link
+                    key={link.name}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center justify-between group text-xl font-light tracking-wide transition-all ${
+                      location.pathname === link.path ? "text-[#8b5e3c]" : "text-stone-700"
+                    }`}
+                  >
+                    <span>{link.name}</span>
+                    <ArrowRight size={18} className="opacity-40 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-8 bg-stone-50">
+              <div className="relative w-full mb-8">
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  className="w-full bg-white border-transparent rounded-xl py-4 pl-12 pr-4 text-sm outline-none shadow-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (handleSearch(), setIsOpen(false))}
+                />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-5 h-5" />
+              </div>
+              <p className="text-[10px] text-stone-400 text-center uppercase tracking-[0.3em] font-bold">Pureté & Élégance Artisanale</p>
+            </div>
           </div>
         </div>
       </div>
-    </header>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import './App.css';
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 
 // 1. Importer les composants du layout
 import Headers from './components/Headers';
@@ -35,6 +35,7 @@ const BoutiquesAteliers = React.lazy(() => import('./pages/BoutiquesAteliers'));
 
 // 3. Importer les outils de routage
 import { Routes, Route, useNavigate } from "react-router-dom";
+import { FaArrowUp } from 'react-icons/fa';
 import Error from './components/Error';
 import DetailProduit from './components/DetailProduit';
 import Faq from './components/Faq';
@@ -59,11 +60,44 @@ const LoadingFallback = () => (
 
 // Layout pour les pages normales
 function Layout({ children }) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const toggleVisibility = () => {
+      if (window.pageYOffset > 300) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    };
+
+    window.addEventListener('scroll', toggleVisibility);
+    return () => window.removeEventListener('scroll', toggleVisibility);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <>
       <Headers />
-      <main className='scroll!'>{children}</main>
+      <main className=''>{children}
+
       <Footer />
+      </main>
+      {isVisible && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 bg-[#5C4033] text-white p-3 rounded-full shadow-lg hover:bg-[#4a3328] transition-all duration-300 ease-in-out transform hover:scale-110 z-50"
+          aria-label="Remonter en haut"
+        >
+          <FaArrowUp className="w-5 h-5" />
+        </button>
+      )}
     </>
   );
 }
