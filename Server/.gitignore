@@ -33,3 +33,4 @@ yarn-error.log
 
 # Vendor
 /vendor/
+/public/image/

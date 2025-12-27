@@ -72,7 +72,7 @@ export default function Header() {
           <div className="flex items-center justify-between">
             
             {/* LOGO */}
-            <Link to="/" className="flex items-center group flex-shrink-0">
+            <Link to="/" className="flex items-center group shrink-0">
               <img
                 src="/image/MonLogo.png"
                 alt="Logo"
